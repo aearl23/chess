@@ -11,5 +11,11 @@
         <module name="shared" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="chess" target="21" />
+      <module name="client" target="21" />
+      <module name="server" target="21" />
+      <module name="shared" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>
