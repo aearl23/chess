@@ -1,5 +1,8 @@
 package chess;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -7,9 +10,11 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] squares = new ChessPiece[8][8];
+    private ChessPiece[][] board;
+
     public ChessBoard() {
-        
+        this.board = new ChessPiece[8][8];
+
     }
 
     /**
@@ -19,11 +24,12 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        squares[position.getRow()][position.getColumn()] = piece;
-        /**throw new RuntimeException("Not implemented");
-         *
-         */
+        board[position.getRow() - 1][position.getColumn() - 1]=piece;
     }
+    /**throw new RuntimeException("Not implemented");
+     *
+     */
+
     /**
      * Gets a chess piece on the chessboard
      *
@@ -32,7 +38,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow()][position.getColumn()];
+        return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
@@ -40,6 +46,61 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        this.board = new ChessPiece[8][8];
+
+        //layout pieces for back Row
+        ChessPiece.PieceType[] backRow = {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
+
+        //add pieces to the board
+        //row of pawn and back row pieces for white and black
+        for (int i = 0; i < 8; i++){
+            //add black pawns first
+            addPiece(new ChessPosition(2,i+1), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+            //add back line
+            addPiece(new ChessPosition(1, i + 1), new ChessPiece(ChessGame.TeamColor.WHITE, backRow[i]));
+        }
+
+        for(int i = 0; i < 8; i++){
+            addPiece(new ChessPosition(7, i+1), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(8, i+1), new ChessPiece(ChessGame.TeamColor.BLACK, backRow[i]));
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (!(o instanceof ChessBoard that)) return false;
+//      return Arrays.deepEquals(board, that.board);
+//    }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard other = (ChessBoard) o;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (!Objects.deepEquals(this.board[i][j], other.board[i][j])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ChessBoard{" +
+                "board=" + Arrays.deepToString(board) +
+                '}';
+    }
+    //loop through and define pieces by char to see the board and debug from there
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(board);
     }
 }
+
