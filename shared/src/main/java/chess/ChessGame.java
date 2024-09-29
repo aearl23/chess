@@ -84,12 +84,34 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
 
-    public boolean isInCheck(TeamColor teamColor)
+    public boolean isInCheck(TeamColor teamColor) {
         //find position of king for given team
         //Look for opposing pieces
         //Check to see if any moves by an opposing piece can capture the king
         //Return true if a valid move exist
 
+        ChessPosition kingPosition = findKing(teamColor);
+        if (kingPosition == null) {
+            return false;
+        }
+        TeamColor opponent = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        for (int row = 1; row <= 8; row++){
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(position);
+
+                if (piece != null && piece.getTeamColor() == opponent) {
+                    Collection<ChessMove> moves = rules.pieceRule(piece.getPieceType(), board, position);
+                    for (ChessMove move : moves) {
+                        if (move,getEndPosition().equals(kingPosition)){
+                            return true; //King is in check
+                        }
+                    }
+                }
+            }
+        }
+        return false; //No moves threatening the King
     }
 
     /**
