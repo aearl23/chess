@@ -84,7 +84,12 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
 
-    public boolean isInCheck(TeamColor teamColor) {throw new RuntimeException("Not implemented");
+    public boolean isInCheck(TeamColor teamColor)
+        //find position of king for given team
+        //Look for opposing pieces
+        //Check to see if any moves by an opposing piece can capture the king
+        //Return true if a valid move exist
+
     }
 
     /**
