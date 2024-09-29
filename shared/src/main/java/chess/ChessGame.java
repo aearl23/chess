@@ -14,7 +14,7 @@ public class ChessGame {
     private ChessRules rules;
     public ChessGame() {
         this.board = new ChessBoard();
-        this.currentTurn = TeamColor.WHITE;
+        this.currentTurn = TeamColor.WHITE; //White goes first
         this.rules = new ChessRules();
     }
 
@@ -77,7 +77,6 @@ public class ChessGame {
 
         //currentTurn = (currentTurn ==TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
-
     /**
      * Determines if the given team is in check
      *
@@ -85,12 +84,17 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
 
+    public boolean isInCheck(TeamColor teamColor) {throw new RuntimeException("Not implemented");
+    }
+
     /**
      * Determines if the given team is in checkmate
      *
      * @param teamColor which team to check for checkmate
      * @return True if the specified team is in checkmate
      */
+    public boolean isInCheckmate(TeamColor teamColor) {throw new RuntimeException("Not implemented");
+    }
 
     /**
      * Determines if the given team is in stalemate, which here is defined as having
@@ -99,6 +103,8 @@ public class ChessGame {
      * @param teamColor which team to check for stalemate
      * @return True if the specified team is in stalemate, otherwise false
      */
+    public boolean isInStalemate(TeamColor teamColor) {throw new RuntimeException("Not implemented");
+    }
 
 
     /**

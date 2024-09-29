@@ -19,9 +19,6 @@ public class ChessMove {
         this.promotionPiece = promotionPiece;
     }
 
-//    public ChessMove(ChessPosition startPosition, ChessPosition endPosition, ChessPiece.PieceType promotionPiece){
-//        this(startPosition, endPosition, promotionPiece, null);
-//    }
     /**
      * @return ChessPosition of starting location
      */
@@ -34,6 +31,10 @@ public class ChessMove {
      */
     public ChessPosition getEndPosition() {
         return endPosition;
+    }
+
+    public ChessPiece.PieceType getPromotionPiece() {
+        return promotionPiece;
     }
 
     @Override
@@ -52,10 +53,6 @@ public class ChessMove {
      *
      * @return Type of piece to promote a pawn to, or null if no promotion
      */
-    public ChessPiece.PieceType getPromotionPiece() {
-        return promotionPiece;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(startPosition, endPosition, promotionPiece);

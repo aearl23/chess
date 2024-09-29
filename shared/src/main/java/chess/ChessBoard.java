@@ -54,10 +54,11 @@ public class ChessBoard {
 
         //add pieces to the board
         //row of pawn and back row pieces for white and black
+        //white first, then black
         for (int i = 0; i < 8; i++){
-            //add black pawns first
+            //add white pawns first
             addPiece(new ChessPosition(2,i+1), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
-            //add back line
+            //add white back line
             addPiece(new ChessPosition(1, i + 1), new ChessPiece(ChessGame.TeamColor.WHITE, backRow[i]));
         }
 
