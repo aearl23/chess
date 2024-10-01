@@ -96,15 +96,17 @@ public class ChessGame {
         }
         TeamColor opponent = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
 
+        //grab all pieces on the board
         for (int row = 1; row <= 8; row++){
             for (int col = 1; col <= 8; col++) {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(position);
 
+                //Check if any present piece has a potential move that threatens the King
                 if (piece != null && piece.getTeamColor() == opponent) {
                     Collection<ChessMove> moves = rules.pieceRule(piece.getPieceType(), board, position);
                     for (ChessMove move : moves) {
-                        if (move,getEndPosition().equals(kingPosition)){
+                        if (move.getEndPosition().equals(kingPosition)){
                             return true; //King is in check
                         }
                     }
@@ -114,6 +116,21 @@ public class ChessGame {
         return false; //No moves threatening the King
     }
 
+    //findking helper func
+
+    private ChessPosition findKing(TeamColor teamColor){
+        for (int row = 1; row <= 8; row++){
+            for (int col = 1; col <= 8 ; row++){
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor){
+                    return position;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Determines if the given team is in checkmate
      *
@@ -121,6 +138,10 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {throw new RuntimeException("Not implemented");
+
+
+
+
     }
 
     /**
@@ -133,7 +154,7 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {throw new RuntimeException("Not implemented");
     }
 
-
+    public
     /**
      * Sets this game's chessboard with a given board
      *
