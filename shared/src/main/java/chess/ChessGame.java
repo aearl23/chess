@@ -59,7 +59,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece=board.getPiece(startPosition);
-        if (piece == null || piece.getTeamColor() != currentTurn) {
+        if (piece == null) {
             return Collections.emptyList();
         }
 
@@ -77,7 +77,7 @@ public class ChessGame {
             }
             tempboard.addPiece(move.getEndPosition(), piece);
             //Check if move leaves king in check
-            if (!isInCheckAfterMove(currentTurn, tempboard)) {
+            if (!isInCheckAfterMove(piece.getTeamColor(), tempboard)) {
                 validmoves.add(move);  //valid move if king is not in check
             }
         }
