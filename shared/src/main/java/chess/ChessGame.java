@@ -50,6 +50,12 @@ public class ChessGame {
      * @param startPosition the piece to get valid moves for
      * @return Set of valid moves for requested piece, or null if no piece at
      * startPosition
+     *
+     *
+     * 10/3 : Note to self : Fix stalemate func, validmoves not returning moves
+     *
+     *
+     *
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece=board.getPiece(startPosition);
