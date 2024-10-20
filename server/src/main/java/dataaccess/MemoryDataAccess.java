@@ -4,12 +4,13 @@ import model.GameData;
 import model.AuthData;
 import model.UserData;
 
+import javax.xml.crypto.Data;
 import java.util.*;
 
 public class MemoryDataAccess implements DataAccess{
 
   private final Map<String, UserData> users = new HashMap<>();
-  private final Map<String, GameData> games = new HashMap<>();
+  private final Map<Integer, GameData> games = new HashMap<>();
   private final Map<String, AuthData> auths = new HashMap<>();
   private int nextGameID = 1;
 
@@ -35,6 +36,39 @@ public class MemoryDataAccess implements DataAccess{
       return users.get(username);
   }
 
+  @Override
+  public int createGame(GameData game) throws DataAccessException {
+    int gameID = nextGameID++;
+    games.put(gameID, new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game()));
+    return gameID;
+  }
 
+  @Override
+  public GameData getgame(int gameID) throws DataAccessException{
+      return games.get(gameID);
+  }
+
+  @Override
+  public void updateGame(GameData game) throws DataAccessException{
+    if (!games.containsKey(game.gameID())){
+        throw new DataAccessException("Game doesn't exist");
+    }
+    games.put(game.gameID(), game);
+  }
+
+  @Override
+  public void createAuth(AuthData auth) throws DataAccessException{
+    auths.put(auth.authToken(),auth);
+  }
+
+  @Override
+  public AuthData getAuth(String authToken) throws DataAccessException{
+    return auths.get(authToken);
+  }
+
+  @Override
+  public void deleteAuth(String authToken) throws DataAccessException{
+    auths.remove(authToken);
+  }
 }
 
