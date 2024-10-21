@@ -8,6 +8,8 @@ import service.UserService;
 import service.GameService;
 import service.AdminService;
 import java.util.List;
+import model.AuthData;
+import model.GameData;
 
 public class Server {
     private final UserService userService;
@@ -65,7 +67,7 @@ public class Server {
         Spark.post("/game", (req, res) -> {
             String authToken = req.headers("authorization");
             var createGameRequest = gson.fromJson(req.body(), CreateGameResponse.class);
-            int gameID = gameService.createGame(authToken, createGameRequest.gameName);
+            int gameID = gameService.createGame(authToken, createGameRequest.gameName());
             res.status(200);
             return gson.toJson(new CreateGameRequest(gameID));
         });
@@ -102,7 +104,7 @@ public class Server {
     private record CreateGameRequest(String gameName) {}
     private record JoinGameRequest(String playerColor, int gameID) {}
     private record CreateGameResponse(int gameID) {}
-    private record ListGameResponse(List<model.GameData> games) {}
+    private record ListGameResponse(List<GameData> games) {}
     private record ErrorResponse(String message) {}
 
 }
