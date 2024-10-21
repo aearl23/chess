@@ -66,10 +66,10 @@ public class Server {
 
         Spark.post("/game", (req, res) -> {
             String authToken = req.headers("authorization");
-            var createGameRequest = gson.fromJson(req.body(), CreateGameResponse.class);
+            var createGameRequest = gson.fromJson(req.body(), CreateGameRequest.class);
             int gameID = gameService.createGame(authToken, createGameRequest.gameName());
             res.status(200);
-            return gson.toJson(new CreateGameRequest(gameID));
+            return gson.toJson(new CreateGameResponse(gameID));
         });
 
         Spark.put("/game", (req, res) -> {

@@ -49,6 +49,11 @@ public class MemoryDataAccess implements DataAccess{
   }
 
   @Override
+  public List<GameData> listGames() throws DataAccessException {
+    return new ArrayList<>(games.values());
+  }
+
+  @Override
   public void updateGame(GameData game) throws DataAccessException{
     if (!games.containsKey(game.gameID())){
         throw new DataAccessException("Game doesn't exist");
