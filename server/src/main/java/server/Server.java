@@ -14,7 +14,7 @@ public class Server {
     private final GameService gameService;
     private final AdminService adminService;
 
-    pirvate final Gson gson;
+    private final Gson gson;
 
     public Server(){
         DataAccess dataAccess = new MemoryDataAccess();
@@ -46,6 +46,47 @@ public class Server {
            var auth = userService.login(loginRequest.username(), loginRequest.password());
            res.status(200);
            return gson.toJson(auth);
+        });
+
+        Spark.delete("/session", (req, res) -> {
+            String authToken = req.headers("authorization");
+            userService.logout(authToken);
+            res.status(200);
+            return "{}";
+        });
+
+        Spark.get("/game", (req, res) -> {
+            String authToken = req.headers("authorization");
+            var games = gameService.listGames(authToken);
+            res.status(200);
+            return gson.toJson(new ListGameResponse(games));
+        });
+
+        Spark.post("/game", (req, res) -> {
+            String authToken = req.headers("authorization");
+            var createGameRequest = gson.fromJson(req.body(), CreateGameResponse.class);
+            int gameID = gameService.createGame(authToken, createGameRequest.gameName);
+            res.status(200);
+            return gson.toJson(new CreateGameRequest(gameID));
+        });
+
+        Spark.put("/game", (req, res) -> {
+            String authToken = req.headers("authorization");
+            var joinGameRequest = gson.fromJson(req.body(), JoinGameRequest.class);
+            gameService.joinGame(authToken, joinGameRequest.playerColor(), joinGameRequest.gameID());
+            res.status(200);
+            return "{}";
+        });
+
+        Spark.delete("/db", (req, res) -> {
+            adminService.clearApplication();
+            res.status(200);
+            return "{}";
+        });
+
+        Spark.exception(Exception.class, (e, req, res) -> {
+            res.status(500);
+            res.body(gson.toJson(new ErrorResponse(e.getMessage())));
         });
 
         Spark.awaitInitialization();
