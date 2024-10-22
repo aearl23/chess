@@ -9,7 +9,7 @@ public class Main {
         //create server object
         Server server = new Server();
         //start server on port 8080
-        int port = 8081;
+        int port = 8000;
         int actualPort = server.run(port);
 
         //check server start

@@ -3,7 +3,7 @@ package service;
 
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
-import dataaccess.DataAccessException;
+import dataaccess.UnauthorizedException;
 import model.UserData;
 import model.AuthData;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,12 +44,13 @@ public class UserServiceTests {
   @Test
   @DisplayName("Login Positive")
   public void testLoginPositive() throws DataAccessException {
-    UserData userData = new UserData("testUser", "password", "test@example.com");
+    UserData userData = new UserData("testUser", "password", "test@gmail.com");
     userService.register(userData);
-    AuthData authData = userService.login("testUser", "password");
-    assertNotNull(authData);
-    assertEquals("testUser", authData.username());
-    assertNotNull(authData.authToken());
+    UserData loginData = new UserData("testUser", "password", "test@gmail.com");
+    AuthData result = userService.login(loginData);
+    assertNotNull(result);
+    assertEquals("testUser", result.username());
+    assertNotNull(result.authToken());
   }
 
   @Test
@@ -58,7 +59,8 @@ public class UserServiceTests {
     UserData userData = new UserData("testUser", "password", "test@example.com");
     assertThrows(DataAccessException.class, () -> {
       userService.register(userData);
-      userService.login("testUser", "wrongPassword");
+      UserData wrongData = new UserData("testuser", "wrongpass", null);
+      userService.login(wrongData);
     });
   }
 

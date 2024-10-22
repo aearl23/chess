@@ -1,5 +1,6 @@
 package server;
 
+import model.UserData;
 import spark.*;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
@@ -45,7 +46,8 @@ public class Server {
 
         Spark.post("/session", (req, res) -> {
            var loginRequest = gson.fromJson(req.body(), LoginRequest.class);
-           var auth = userService.login(loginRequest.username(), loginRequest.password());
+           UserData loginData = new UserData(loginRequest.username(), loginRequest.password(), null);
+           var auth = userService.login(loginData);
            res.status(200);
            return gson.toJson(auth);
         });
@@ -97,7 +99,6 @@ public class Server {
 
     public void stop() {
         Spark.stop();
-        Spark.awaitStop();
     }
 
     private record LoginRequest(String username, String password) {}

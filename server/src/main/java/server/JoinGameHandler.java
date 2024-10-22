@@ -1,7 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
+import dataaccess.UnauthorizedException;
 import service.GameService;
 import spark.Request;
 import spark.Response;
@@ -26,9 +26,9 @@ public class JoinGameHandler implements Route {
 
       try{
           //parse request body
-          var joinRequest = gson.fromJson(request.body(), JoinGameRequest.class)
+          var joinRequest = gson.fromJson(request.body(), JoinGameRequest.class);
           //call the service to join the game
-          gameService.joinGame(authToken, joinRequest.gameID(), joinRequest.playerColor());
+          gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
           response.status(200);
           return "{}"; //Empty json object for success
       } catch (DataAccessException e) {
