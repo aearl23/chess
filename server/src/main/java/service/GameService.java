@@ -40,22 +40,22 @@ public class GameService {
       throw new DataAccessException("Error: bad request");
     }
 
-    String username = auth.username();
+    GameData updatedGame;
     if (playerColor.equalsIgnoreCase("WHITE")) {
       if (game.whiteUsername() != null) {
         throw new DataAccessException("Error: already taken");
       }
-      game = new GameData(game.gameID(), username, game.blackUsername(), game.gameName(), game.game());
+      updatedGame = new GameData(game.gameID(), auth.username(), game.blackUsername(), game.gameName(), game.game());
     } else if (playerColor.equalsIgnoreCase("BLACK")) {
       if (game.blackUsername() != null) {
         throw new DataAccessException("Error: already taken");
       }
-      game = new GameData(game.gameID(), game.whiteUsername(), username, game.gameName(), game.game());
+      updatedGame = new GameData(game.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game());
     } else {
       throw new DataAccessException("Error: bad request");
     }
 
-    dataAccess.updateGame(game);
+    dataAccess.updateGame(updatedGame);
   }
 }
 
