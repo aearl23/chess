@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.BadRequestException;
+import dataaccess.GameAlreadyTakenException;
 import service.GameService;
 import dataaccess.UnauthorizedException;
 import spark.Request;
@@ -20,39 +21,33 @@ public class JoinGameHandler implements Route {
     public Object handle(Request request, Response response) {
       //grab authtoken from headers
       String authToken = request.headers("authorization");
-      if (authToken == null || authToken.isEmpty()){
-        response.status(401);
-        return gson.toJson(new ErrorResponse("Error: unauthorized"));
-      }
-
       try{
-          //parse request body
-          var joinRequest = gson.fromJson(request.body(), JoinGameRequest.class);
-          //call the service to join the game
-          gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
-          response.status(200);
-          return "{}"; //Empty json object for success
-      } catch (UnauthorizedException e) {
-          if (e.getMessage().contains("unauthorized")){
+        //parse request body
+        var joinRequest = gson.fromJson(request.body(), JoinGameRequest.class);
+
+        if (authToken == null || authToken.isEmpty()){
+          response.status(401);
+          return gson.toJson(new ErrorResponse("Error: unauthorized"));
+        }
+        //call the service to join the game
+        gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
+        response.status(200);
+        return "{}"; //Empty json object for success
+
+      } catch (BadRequestException e) {
+            response.status(400);
+            return gson.toJson(new ErrorResponse("Error: bad request"));
+      } catch (UnauthorizedException e){
             response.status(401);
             return gson.toJson(new ErrorResponse("Error: unauthorized"));
-          } else if (e.getMessage().contains("already taken")) {
+      } catch (GameAlreadyTakenException e) {
               response.status(403);
               return gson.toJson(new ErrorResponse("Error: already taken"));
-          } else if (e.getMessage().contains("bad request")) {
-              response.status(400);
-              return gson.toJson(new ErrorResponse("Error: bad request"));
-          }
-          response.status(500);
-          return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
-      } catch (BadRequestException e) {
-          response.status(400);
-          return gson.toJson(new ErrorResponse("Error: bad request"));
       } catch (Exception e) {
           response.status(500);
           return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
       }
-  }
+    }
   private record JoinGameRequest(String playerColor, int gameID) {
   }
 

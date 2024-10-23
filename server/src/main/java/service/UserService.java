@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.DataAccess;
-import dataaccess.InvalidUsernameException;
-import dataaccess.WrongPasswordException;
-import dataaccess.DatabaseException;
+import dataaccess.*;
 import model.UserData;
 import model.AuthData;
 
@@ -18,7 +15,7 @@ public class UserService {
     this.dataAccess=dataAccess;
   }
 
-  public AuthData register(UserData user) throws DatabaseException {
+  public AuthData register(UserData user) throws DataAccessException, DatabaseException {
     //check if user already exists
     try {
       if (dataAccess.getUser(user.username()) != null) {
@@ -29,11 +26,11 @@ public class UserService {
       //generate authToken
       return createAuthToken(user.username());
     } catch (Exception e) {
-      throw new DatabaseException("Error while registering user");
+      throw e;
     }
   }
 
-  public AuthData login(UserData loginData) throws InvalidUsernameException, WrongPasswordException, DatabaseException {
+  public AuthData login(UserData loginData) throws DataAccessException, InvalidUsernameException, WrongPasswordException, DatabaseException {
     try {
       if (loginData == null || loginData.username() == null || loginData.password() == null) {
         throw new DatabaseException("Error: missing credentials");
@@ -55,19 +52,19 @@ public class UserService {
       dataAccess.createAuth(authData);
       return authData;
 
-    } catch (Exception e) {
-      throw new DatabaseException("Error while logging in");
+    }  catch (Exception e) {
+       throw e;
     }
   }
 
-  public void logout(String authToken) throws DatabaseException {
+  public void logout(String authToken) throws UnauthorizedException {
     try {
       if (dataAccess.getAuth(authToken) == null) {
-        throw new DatabaseException("Error: unauthorized");
+        throw new UnauthorizedException("Error: unauthorized");
       }
       dataAccess.deleteAuth(authToken);
     } catch (Exception e) {
-      throw new DatabaseException("Error while logging out");
+      throw e;
     }
   }
 

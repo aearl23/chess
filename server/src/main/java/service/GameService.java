@@ -39,24 +39,20 @@ public class GameService {
           throw new BadRequestException("Error: invalid game ID");
       }
 
-      GameData updatedGame;
 
-
-      if (playerColor.equalsIgnoreCase("WHITE")) {
+      if (playerColor == null){
+        throw new BadRequestException("Error: invalid player color");
+      } else if (playerColor.equals("WHITE")) {
           if (game.whiteUsername() != null) {
               throw new GameAlreadyTakenException("Error: White player slot already taken");
           }
-          updatedGame = new GameData(game.gameID(), auth.username(), game.blackUsername(), game.gameName(), game.game());
-      } else if (playerColor.equalsIgnoreCase("BLACK")) {
+            dataAccess.updateGame( new GameData(game.gameID(), auth.username(), game.blackUsername(), game.gameName(), game.game()));
+      } else if (playerColor.equals("BLACK")) {
           if (game.blackUsername() != null) {
               throw new GameAlreadyTakenException("Error: Black player slot already taken");
           }
-          updatedGame = new GameData(game.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game());
-      } else {
-          throw new BadRequestException("Error: invalid player color");
+        dataAccess.updateGame( new GameData(game.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game()));
       }
-
-      dataAccess.updateGame(updatedGame);
     }
 }
 

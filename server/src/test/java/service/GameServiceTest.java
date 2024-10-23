@@ -16,7 +16,7 @@ public class GameServiceTest {
   private String authToken;
 
   @BeforeEach
-  public void setUp() throws DatabaseException {
+  public void setUp() throws DataAccessException {
     dataAccess = new MemoryDataAccess();
     gameService = new GameService(dataAccess);
     userService = new UserService(dataAccess);

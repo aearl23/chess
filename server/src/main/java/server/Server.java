@@ -9,8 +9,10 @@ import service.UserService;
 import service.GameService;
 import service.AdminService;
 import java.util.List;
-import model.AuthData;
 import model.GameData;
+import server.RegisterHandler;
+import server.JoinGameHandler;
+import server.LoginHandler;
 
 public class Server {
     private final UserService userService;
@@ -32,26 +34,24 @@ public class Server {
 
         Spark.staticFiles.location("web");
 
-        // Register your endpoints and handle exceptions here.
+        // Register your handlers
+        RegisterHandler registerHandler  = new server.RegisterHandler(userService);
+        LoginHandler loginHandler = new server.LoginHandler(userService);
+        LogoutHandler logoutHandler = new server.LogoutHandler(userService);
+        JoinGameHandler joinGameHandler = new server.JoinGameHandler(gameService);
+        ClearHandler clearHandler = new server.ClearHandler(adminService);
+
+
+        Spark.post("/user", registerHandler);
+        Spark.post("/session", loginHandler);
+        Spark.put("/game", joinGameHandler);
+        Spark.put("/session", logoutHandler);
+        Spark.put("/session", clearHandler);
+
 
         //This line initializes the server and can be removed once you have a functioning endpoint
 
         //Add endpoints here
-        Spark.post("/user", (req, res) -> {
-            var user = gson.fromJson(req.body(), model.UserData.class);
-            var auth = userService.register(user);
-            res.status(200);
-            return gson.toJson(auth);
-        });
-
-        Spark.post("/session", (req, res) -> {
-           var loginRequest = gson.fromJson(req.body(), LoginRequest.class);
-           UserData loginData = new UserData(loginRequest.username(), loginRequest.password(), null);
-           var auth = userService.login(loginData);
-           res.status(200);
-           return gson.toJson(auth);
-        });
-
         Spark.delete("/session", (req, res) -> {
             String authToken = req.headers("authorization");
             userService.logout(authToken);
@@ -74,14 +74,6 @@ public class Server {
             return gson.toJson(new CreateGameResponse(gameID));
         });
 
-        Spark.put("/game", (req, res) -> {
-            String authToken = req.headers("authorization");
-            var joinGameRequest = gson.fromJson(req.body(), JoinGameRequest.class);
-            gameService.joinGame(authToken, joinGameRequest.playerColor(), joinGameRequest.gameID());
-            res.status(200);
-            return "{}";
-        });
-
         Spark.delete("/db", (req, res) -> {
             adminService.clearApplication();
             res.status(200);
@@ -98,12 +90,11 @@ public class Server {
     }
 
     public void stop() {
+
         Spark.stop();
     }
 
-    private record LoginRequest(String username, String password) {}
     private record CreateGameRequest(String gameName) {}
-    private record JoinGameRequest(String playerColor, int gameID) {}
     private record CreateGameResponse(int gameID) {}
     private record ListGameResponse(List<GameData> games) {}
     private record ErrorResponse(String message) {}

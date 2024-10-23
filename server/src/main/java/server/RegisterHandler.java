@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DatabaseException;
 import model.UserData;
 import model.AuthData;
 import service.UserService;
@@ -18,13 +19,23 @@ public class RegisterHandler implements Route {
   }
 
   @Override
-  public Object handle(Request request, Response response){
-    UserData userData = gson.fromJson(request.body(), UserData.class);
+  public Object handle(Request request, Response response) {
+    UserData userData=gson.fromJson(request.body(), UserData.class);
+    if (userData.username() == null || userData.password() == null || userData.email() == null) {
+      response.status(400);
+      return gson.toJson(new RegisterHandler.ErrorResponse("Error: bad request"));
+    }
 
     try {
-      AuthData authData = userService.register(userData);
+      AuthData authData=userService.register(userData);
       response.status(200);
       return gson.toJson(authData);
+    } catch (DatabaseException e) {
+        response.status(403);
+        return gson.toJson(new ErrorResponse("Error: already taken"));
+    } catch (IllegalArgumentException e) {
+      response.status(400);
+      return gson.toJson(new ErrorResponse("Error: invalid input -" + e.getMessage()));
     } catch (Exception e) {
       response.status(500);
       return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));

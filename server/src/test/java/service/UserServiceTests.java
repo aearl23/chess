@@ -21,7 +21,7 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Register Positive")
-  public void testRegisterPositive() throws DatabaseException {
+  public void testRegisterPositive() throws DataAccessException {
     UserData userData = new UserData("testUser", "password", "test@example.com");
     AuthData authData = userService.register(userData);
     assertNotNull(authData);
@@ -41,14 +41,14 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Login Positive")
-  public void testLoginPositive() throws DatabaseException, WrongPasswordException, InvalidUsernameException {
-    UserData userData = new UserData("testUser", "password", "test@gmail.com");
-    userService.register(userData);
-    UserData loginData = new UserData("testUser", "password", "test@gmail.com");
-    AuthData result = userService.login(loginData);
-    assertNotNull(result);
-    assertEquals("testUser", result.username());
-    assertNotNull(result.authToken());
+  public void testLoginPositive() throws DataAccessException, DatabaseException, WrongPasswordException, InvalidUsernameException {
+      UserData userData=new UserData("testUser", "password", "test@gmail.com");
+      userService.register(userData);
+      UserData loginData=new UserData("testUser", "password", "test@gmail.com");
+      AuthData result=userService.login(loginData);
+      assertNotNull(result);
+      assertEquals("testUser", result.username());
+      assertNotNull(result.authToken());
   }
 
   @Test
@@ -64,7 +64,7 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Logout Positive")
-  public void testLogoutPositive() throws DatabaseException {
+  public void testLogoutPositive() throws DataAccessException {
     UserData userData = new UserData("testUser", "password", "test@example.com");
     AuthData authData = userService.register(userData);
     assertDoesNotThrow(() -> userService.logout(authData.authToken()));
