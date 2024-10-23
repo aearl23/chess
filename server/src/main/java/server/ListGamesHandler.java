@@ -25,12 +25,18 @@ public class ListGamesHandler implements Route {
     try {
       // Check for authorization header
       String authToken = request.headers("authorization");
+
+      if (authToken == null || authToken.isEmpty()) {
+        response.status(401);
+        return gson.toJson(new ErrorResponse("Error: unauthorized"));
+      }
       // Call service method to get games
       List<GameData> games = gameService.listGames(authToken);
 
       // Successful retrieval
       response.status(200);
-      return gson.toJson(new ListGamesResponse(games));
+      ListGamesResponse myResponse = new ListGamesResponse((games));
+      return gson.toJson(myResponse);
 
     } catch (UnauthorizedException e) {
       response.status(401);
