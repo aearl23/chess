@@ -1,14 +1,12 @@
 package service;
 
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
-import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AdminServiceTest {
@@ -27,7 +25,7 @@ public class AdminServiceTest {
 
   @Test
   @DisplayName("RegisterAndLogin")
-  public void registerandlogin() throws DataAccessException  {
+  public void registerandlogin() throws InvalidUsernameException, WrongPasswordException, DatabaseException {
     UserData registerData = new UserData("testUser", "testPass", "test@gmail.com");
     AuthData registerResult = userService.register(registerData);
 
@@ -46,15 +44,15 @@ public class AdminServiceTest {
 
   @Test
   @DisplayName("Clear Positive Test")
-  public void testclearpositive() throws DataAccessException{
+  public void testclearpositive() throws DatabaseException, DataAccessException{
       //Add data
       UserData  userdata = new UserData("testuser", "password", "testemail@test.com");
       userService.register(userdata);
 
       //clear
       dataAccess.clear();
-      //Try to login - should fail
+      //Try to log in  - should fail
       UserData loginData = new UserData("testuser", "testPass", null);
-      assertThrows(DataAccessException.class, () -> userService.login(loginData));
+      assertThrows(DatabaseException.class, () -> userService.login(loginData));
   }
 }

@@ -1,7 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.UnauthorizedException;
+import dataaccess.InvalidUsernameException;
+import dataaccess.WrongPasswordException;
+import dataaccess.DatabaseException;
 import model.UserData;
 import model.AuthData;
 import service.UserService;
@@ -20,6 +22,7 @@ public class LoginHandler implements Route {
 
     @Override
     public Object handle(Request request, Response response){
+        response.type("application/json");
         try {
           //parse the request body
           LoginRequest loginRequest = gson.fromJson(request.body(), LoginRequest.class);
@@ -36,19 +39,25 @@ public class LoginHandler implements Route {
           response.status(200);
           return gson.toJson(auth);
 
-        } catch (DataAccessException e) {
-            String message = e.getMessage();
+        } catch (InvalidUsernameException e) {
+          // Handle invalid username error
+          response.status(401); // Unauthorized
+          return gson.toJson(new ErrorResponse(e.getMessage()));
 
-            if (message.contains("invalid username")) {
-              response.status(401);
-              return gson.toJson(new ErrorResponse("Error: invalid username"));
-            }
+        } catch (WrongPasswordException e) {
+          // Handle wrong password error
+          response.status(401); // Unauthorized
+          return gson.toJson(new ErrorResponse(e.getMessage()));
 
-            response.status(500);
-            return gson.toJson(new ErrorResponse("Error: " + message));
+        } catch (DatabaseException e) {
+          // Handle any other database-related errors
+          response.status(500); // Internal Server Error
+          return gson.toJson(new ErrorResponse(e.getMessage()));
+
         } catch (Exception e) {
-            response.status(500);
-            return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
+          // Handle any other unexpected exceptions
+          response.status(500); // Internal Server Error
+          return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
         }
     }
     private record LoginRequest(String username, String password){}

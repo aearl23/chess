@@ -1,8 +1,6 @@
 package service;
 
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 import model.UserData;
 import model.GameData;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +16,7 @@ public class GameServiceTest {
   private String authToken;
 
   @BeforeEach
-  public void setUp() throws DataAccessException {
+  public void setUp() throws DatabaseException {
     dataAccess = new MemoryDataAccess();
     gameService = new GameService(dataAccess);
     userService = new UserService(dataAccess);
@@ -38,7 +36,7 @@ public class GameServiceTest {
   @Test
   @DisplayName("List Games Negative")
   public void testListGamesNegative() {
-    assertThrows(DataAccessException.class, () -> gameService.listGames("invalidAuthToken"));
+    assertThrows(UnauthorizedException.class, () -> gameService.listGames("invalidAuthToken"));
   }
 
   @Test
@@ -51,7 +49,7 @@ public class GameServiceTest {
   @Test
   @DisplayName("Create Game Negative")
   public void testCreateGameNegative() {
-    assertThrows(DataAccessException.class, () -> gameService.createGame("invalidAuthToken", "NewGame"));
+    assertThrows(UnauthorizedException.class, () -> gameService.createGame("invalidAuthToken", "NewGame"));
   }
 
   @Test
@@ -66,6 +64,6 @@ public class GameServiceTest {
   public void testJoinGameNegative() throws DataAccessException {
     int gameId = gameService.createGame(authToken, "JoinGame");
     gameService.joinGame(authToken, "WHITE", gameId);
-    assertThrows(DataAccessException.class, () -> gameService.joinGame(authToken, "WHITE", gameId)); // Trying to join as WHITE again
+    assertThrows(GameAlreadyTakenException.class, () -> gameService.joinGame(authToken, "WHITE", gameId)); // Trying to join as WHITE again
   }
 }

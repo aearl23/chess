@@ -1,8 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.UnauthorizedException;
+import dataaccess.BadRequestException;
 import service.GameService;
+import dataaccess.UnauthorizedException;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -31,7 +32,7 @@ public class JoinGameHandler implements Route {
           gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
           response.status(200);
           return "{}"; //Empty json object for success
-      } catch (DataAccessException e) {
+      } catch (UnauthorizedException e) {
           if (e.getMessage().contains("unauthorized")){
             response.status(401);
             return gson.toJson(new ErrorResponse("Error: unauthorized"));
@@ -44,12 +45,18 @@ public class JoinGameHandler implements Route {
           }
           response.status(500);
           return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
+      } catch (BadRequestException e) {
+          response.status(400);
+          return gson.toJson(new ErrorResponse("Error: bad request"));
+      } catch (Exception e) {
+          response.status(500);
+          return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
       }
   }
   private record JoinGameRequest(String playerColor, int gameID) {
   }
 
-  private static class ErrorResponse{
+  private static class ErrorResponse {
       private final String message;
 
       public ErrorResponse(String message){

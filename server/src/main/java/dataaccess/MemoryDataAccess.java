@@ -4,7 +4,6 @@ import model.GameData;
 import model.AuthData;
 import model.UserData;
 
-import javax.xml.crypto.Data;
 import java.util.*;
 
 public class MemoryDataAccess implements DataAccess{
@@ -24,56 +23,66 @@ public class MemoryDataAccess implements DataAccess{
   }
 
   @Override
-  public void createUser(UserData user) throws DataAccessException{
+  public void createUser(UserData user) throws InvalidUsernameException{
       if (users.containsKey(user.username())) {
-        throw new DataAccessException("User already exists");
+        throw new InvalidUsernameException("User already exists");
       }
       users.put(user.username(), user);
   }
 
   @Override
-  public UserData getUser(String username) throws DataAccessException {
+  public UserData getUser(String username) {
       return users.get(username);
   }
 
   @Override
-  public int createGame(GameData game) throws DataAccessException {
+  public int createGame(GameData game) throws DatabaseException {
     int gameID = nextGameID++;
     games.put(gameID, new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game()));
     return gameID;
   }
 
   @Override
-  public GameData getGame(int gameID) throws DataAccessException{
-      return games.get(gameID);
+  public GameData getGame(int gameID) throws BadRequestException{
+    GameData game = games.get(gameID);
+    if (game == null) {
+      throw new BadRequestException("Error: Game not found");
+    }
+    return games.get(gameID);
   }
 
   @Override
-  public List<GameData> listGames() throws DataAccessException {
+  public List<GameData> listGames() {
     return new ArrayList<>(games.values());
   }
 
   @Override
-  public void updateGame(GameData game) throws DataAccessException{
+  public void updateGame(GameData game) throws BadRequestException{
     if (!games.containsKey(game.gameID())){
-        throw new DataAccessException("Game doesn't exist");
+        throw new BadRequestException("Game doesn't exist");
     }
     games.put(game.gameID(), game);
   }
 
   @Override
-  public void createAuth(AuthData auth) throws DataAccessException{
+  public void createAuth(AuthData auth) {
     auths.put(auth.authToken(),auth);
   }
 
   @Override
-  public AuthData getAuth(String authToken) throws DataAccessException{
-    return auths.get(authToken);
+  public AuthData getAuth(String authToken) throws UnauthorizedException{
+    AuthData auth = auths.get(authToken);
+    if (auth == null) {
+      throw new UnauthorizedException("Error: Unauthorized");
+    }
+    return auth;
   }
 
   @Override
-  public void deleteAuth(String authToken) throws DataAccessException{
-    auths.remove(authToken);
+  public void deleteAuth(String authToken) throws UnauthorizedException{
+    if (auths.remove(authToken) == null) {
+      throw new UnauthorizedException("Error: Auth token not found");
+    }
   }
 }
 

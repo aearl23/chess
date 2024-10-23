@@ -1,7 +1,8 @@
 package service;
 
 import dataaccess.DataAccess;
-import dataaccess.UnauthorizedException;
+import dataaccess.DataAccessException;
+import dataaccess.DataAccessException;
 
 public class AdminService {
   private final DataAccess dataAccess;
@@ -9,7 +10,7 @@ public class AdminService {
   public AdminService(DataAccess dataAccess) {
     this.dataAccess = dataAccess;
   }
-  public void clearApplication() throws UnauthorizedException{
+  public void clearApplication() throws DataAccessException {
     dataAccess.clear();
   }
 }

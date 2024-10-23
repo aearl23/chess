@@ -1,9 +1,7 @@
 package service;
 
 
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 import model.UserData;
 import model.AuthData;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +21,7 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Register Positive")
-  public void testRegisterPositive() throws DataAccessException {
+  public void testRegisterPositive() throws DatabaseException {
     UserData userData = new UserData("testUser", "password", "test@example.com");
     AuthData authData = userService.register(userData);
     assertNotNull(authData);
@@ -35,7 +33,7 @@ public class UserServiceTests {
   @DisplayName("Register Negative")
   public void testRegisterNegative() {
     UserData userData = new UserData("testUser", "password", "test@example.com");
-    assertThrows(DataAccessException.class, () -> {
+    assertThrows(DatabaseException.class, () -> {
       userService.register(userData);
       userService.register(userData); // Trying to register the same user again
     });
@@ -43,7 +41,7 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Login Positive")
-  public void testLoginPositive() throws DataAccessException {
+  public void testLoginPositive() throws DatabaseException, WrongPasswordException, InvalidUsernameException {
     UserData userData = new UserData("testUser", "password", "test@gmail.com");
     userService.register(userData);
     UserData loginData = new UserData("testUser", "password", "test@gmail.com");
@@ -57,7 +55,7 @@ public class UserServiceTests {
   @DisplayName("Login Negative")
   public void testLoginNegative() {
     UserData userData = new UserData("testUser", "password", "test@example.com");
-    assertThrows(DataAccessException.class, () -> {
+    assertThrows(DatabaseException.class, () -> {
       userService.register(userData);
       UserData wrongData = new UserData("testuser", "wrongpass", null);
       userService.login(wrongData);
@@ -66,7 +64,7 @@ public class UserServiceTests {
 
   @Test
   @DisplayName("Logout Positive")
-  public void testLogoutPositive() throws DataAccessException {
+  public void testLogoutPositive() throws DatabaseException {
     UserData userData = new UserData("testUser", "password", "test@example.com");
     AuthData authData = userService.register(userData);
     assertDoesNotThrow(() -> userService.logout(authData.authToken()));
@@ -75,7 +73,7 @@ public class UserServiceTests {
   @Test
   @DisplayName("Logout Negative")
   public void testLogoutNegative() {
-    assertThrows(DataAccessException.class, () -> userService.logout("invalidAuthToken"));
+    assertThrows(DatabaseException.class, () -> userService.logout("invalidAuthToken"));
   }
 }
 
