@@ -20,13 +20,6 @@ public class ClearHandler implements Route {
   public Object handle(Request request, Response response) {
     response.type("application/json");
     try {
-      // Check for authorization header
-      String authToken = request.headers("authorization");
-      if (authToken == null || authToken.isEmpty()) {
-        response.status(401);
-        return gson.toJson(new ErrorResponse("Error: unauthorized"));
-      }
-
       // Call service method to clear application
       adminService.clearApplication();
 

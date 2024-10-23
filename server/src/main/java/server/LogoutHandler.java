@@ -21,21 +21,16 @@ public class LogoutHandler implements Route {
     response.type("application/json");
     try {
       // Get authToken from headers
-      String authToken = request.headers("authorization");
-
-      // Check if authToken is present
-      if (authToken == null || authToken.isEmpty()) {
-        response.status(401);
-        return gson.toJson(new ErrorResponse("Error: unauthorized"));
-      }
-
+      String authToken=request.headers("authorization");
       // Call service method to logout
       userService.logout(authToken);
-
       // Successful logout
       response.status(200);
       return "{}";
 
+    } catch (UnauthorizedException e) {
+      response.status(401);
+      return gson.toJson(new ErrorResponse("Error: unauthorized"));
     } catch (Exception e) {
       // Handle any other unexpected exceptions
       response.status(500);

@@ -9,10 +9,9 @@ public class Main {
         //create server object
         Server server = new Server();
         //start server on port 8080
-        int port = 8000;
-        int actualPort = server.run(port);
+        server.run(8000);
 
         //check server start
-        System.out.println("Server started on port: " + actualPort);
+        System.out.println("Server started on port: " + 8000);
     }
 }
