@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.*;
+import chess.ChessRules;
 
 
 /**
@@ -13,12 +14,12 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
-    private final ChessRules chessRules;
+//    private final ChessRules chessRules;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor=pieceColor;
         this.type=type;
-        this.chessRules = new ChessRules(); //initialize all move rules
+//        this.chessRules = new ChessRules(); //initialize all move rules
     }
 
     /**
@@ -56,7 +57,9 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return chessRules.pieceRule(type, board, myPosition);
+        //return ChessRules.pieceRule(type, board, myPosition);
+        return ChessRules.getPieceMoves(type, board, myPosition);
+
     }
 
     @Override
@@ -66,9 +69,10 @@ public class ChessPiece {
       return pieceColor == that.pieceColor && type == that.type;
     }
 
+    //previously had chessRules as an arguement
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type, chessRules);
+        return Objects.hash(pieceColor, type);
     }
 
     @Override

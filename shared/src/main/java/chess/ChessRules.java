@@ -4,14 +4,22 @@ import java.util.*;
 
 public class ChessRules {
 
+  //moves for all pieces
+  private static final Map<ChessPiece.PieceType, MoveRules> rulesMap = new HashMap<>();
+
   @FunctionalInterface
   public interface MoveRules {
     Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition);
   }
 
-  //moves for all pieces
-  private final Map<ChessPiece.PieceType, MoveRules> rulesMap = new HashMap<>();
-
+  //previously pieceRule
+  public static Collection<ChessMove> getPieceMoves(ChessPiece.PieceType pieceType, ChessBoard board, ChessPosition position) {
+    MoveRules rules = rulesMap.get(pieceType);
+    if (rules != null) {
+      return rules.pieceMoves(board, position);
+    }
+    return new ArrayList<>();
+  }
   public ChessRules() {
       // Define the movement rules for each piece type
       rulesMap.put(ChessPiece.PieceType.KING, this::kingMoves);
@@ -20,14 +28,6 @@ public class ChessRules {
       rulesMap.put(ChessPiece.PieceType.KNIGHT, this::knightMoves);
       rulesMap.put(ChessPiece.PieceType.ROOK, this::rookMoves);
       rulesMap.put(ChessPiece.PieceType.PAWN, this::pawnMoves);
-  }
-
-  public Collection<ChessMove> pieceRule(ChessPiece.PieceType pieceType, ChessBoard board, ChessPosition position) {
-    MoveRules rules = rulesMap.get(pieceType);
-    if (rules != null) {
-      return rules.pieceMoves(board, position);
-    }
-    return new ArrayList<>();
   }
 
   // Example rules

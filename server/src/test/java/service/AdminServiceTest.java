@@ -57,6 +57,6 @@ public class AdminServiceTest {
       dataAccess.clear();
       //Try to log in  - should fail
       UserData loginData = new UserData("testuser", "testPass", null);
-      assertThrows(DatabaseException.class, () -> userService.login(loginData));
+      assertThrows(InvalidUsernameException.class, () -> userService.login(loginData));
   }
 }

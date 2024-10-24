@@ -64,7 +64,7 @@ public class ChessGame {
         }
 
         //load all moves
-        Collection<ChessMove> potentialmoves = rules.pieceRule(piece.getPieceType(), board, startPosition);
+        Collection<ChessMove> potentialmoves = rules.getPieceMoves(piece.getPieceType(), board, startPosition);
         Collection<ChessMove> validmoves = new ArrayList<>();
 //        //use tempboard to make moves and check if the moves pass
         for (ChessMove move : potentialmoves){
@@ -141,7 +141,7 @@ public class ChessGame {
 
                 //Check if any present piece has a potential move that threatens the King
                 if (piece != null && piece.getTeamColor() == opponent) {
-                    Collection<ChessMove> moves = rules.pieceRule(piece.getPieceType(), board, position);
+                    Collection<ChessMove> moves = rules.getPieceMoves(piece.getPieceType(), board, position);
                     for (ChessMove move : moves) {
                         if (move.getEndPosition().equals(kingPosition)){
                             return true; //King is in check
@@ -247,7 +247,7 @@ public class ChessGame {
                 ChessPiece opponentpiece = tempBoard.getPiece(position);
 
                 if (opponentpiece != null && opponentpiece.getTeamColor() == oppositeTeam) {
-                    Collection<ChessMove> opponentmoves = rules.pieceRule(opponentpiece.getPieceType(), tempBoard, position);
+                    Collection<ChessMove> opponentmoves = rules.getPieceMoves(opponentpiece.getPieceType(), tempBoard, position);
                     for (ChessMove move : opponentmoves) {
                         if (move.getEndPosition().equals(kingPosition)) {
                             return true; // King is still under attack

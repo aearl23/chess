@@ -55,7 +55,7 @@ public class UserServiceTests {
   @DisplayName("Login Negative")
   public void testLoginNegative() {
     UserData userData = new UserData("testUser", "password", "test@example.com");
-    assertThrows(DatabaseException.class, () -> {
+    assertThrows(InvalidUsernameException.class, () -> {
       userService.register(userData);
       UserData wrongData = new UserData("testuser", "wrongpass", null);
       userService.login(wrongData);
@@ -73,7 +73,7 @@ public class UserServiceTests {
   @Test
   @DisplayName("Logout Negative")
   public void testLogoutNegative() {
-    assertThrows(DatabaseException.class, () -> userService.logout("invalidAuthToken"));
+    assertThrows(UnauthorizedException.class, () -> userService.logout("invalidAuthToken"));
   }
 }
 
