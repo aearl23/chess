@@ -18,8 +18,13 @@
 
 
 10/28
--Requirements for Phase 4: DataBase 
+-TODO Requirements for Phase 4: DataBase 
   - Add DB interfaces (MySQL) in DataAccess folder  "MySQLDataAccess"
-  - Change server to use MYSQL fiel not memoryaccessdata
+  - Change server to use MYSQL file not memoryaccessdata
   - DataBaseManager creates bridge between DB and server to run commands
-  - 
+  - Install the MYSQL database management system (DBMS) on your development machine. Modify db.properties to contain your username and password.
+  - Design your database tables (i.e., your database schema)
+  - Implement a MySQL implementation of your Data Access Interface. Initially you can just stub out all of the methods.
+  - Add the ability to create your database and tables, if they don't exist, when your server starts up.
+  - Iteratively write a test for each of your Data Access interface methods along with the backing MySQL code.
+  - Ensure that all provided pass off tests work properly, including the PersistenceTests added for this assignment, and the StandardAPITests from the previous assignment.
