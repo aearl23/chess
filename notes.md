@@ -15,3 +15,11 @@
 
 10/23
 -Errors: overflow errors are due to serilization of chess piece file which contains chess rule instances. ChessRules, which uses a map, is a nightmare for serialzation. Remove ChessRules from the chesspiece file to pass the tests and consider re-writting chessrules to use other data struct besides a map
+
+
+10/28
+-Requirements for Phase 4: DataBase 
+  - Add DB interfaces (MySQL) in DataAccess folder  "MySQLDataAccess"
+  - Change server to use MYSQL fiel not memoryaccessdata
+  - DataBaseManager creates bridge between DB and server to run commands
+  - 
