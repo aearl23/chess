@@ -63,37 +63,6 @@ public class DatabaseManager {
      * </code>
      */
 
-    // create the database and schema tables
-    static void initializeDatabase() throws DataAccessException {
-        createDatabase();
-        try (Connection conn = getConnection()) {
-            String usersTable = "CREATE TABLE IF NOT EXISTS Users ("
-                    + "user_id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "username VARCHAR(50) UNIQUE NOT NULL, "
-                    + "password_hash VARCHAR(60) NOT NULL)";
-
-            String gamesTable = "CREATE TABLE IF NOT EXISTS Games ("
-                    + "game_id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "user_id INT NOT NULL, "
-                    + "game_state JSON NOT NULL, "
-                    + "FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE)";
-
-            String movesTable = "CREATE TABLE IF NOT EXISTS Moves ("
-                    + "move_id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "game_id INT NOT NULL, "
-                    + "move_order INT NOT NULL, "
-                    + "move_description VARCHAR(100) NOT NULL, "
-                    + "FOREIGN KEY (game_id) REFERENCES Games(game_id) ON DELETE CASCADE)";
-
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(usersTable);
-                stmt.executeUpdate(gamesTable);
-                stmt.executeUpdate(movesTable);
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Error initializing database tables: " + e.getMessage());
-        }
-    }
 
     static Connection getConnection() throws DataAccessException {
         try {
