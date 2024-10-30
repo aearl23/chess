@@ -1,5 +1,6 @@
 package dataaccess;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.Properties;
 
@@ -32,13 +33,10 @@ public class DatabaseManager {
             throw new RuntimeException("unable to process db.properties. " + ex.getMessage());
         }
     }
-
-
-
     /**
      * Creates the database if it does not already exist.
      */
-    static void createDatabase() throws DataAccessException {
+    public static void createDatabase() throws DataAccessException {
         try {
             var statement = "CREATE DATABASE IF NOT EXISTS " + DATABASE_NAME;
             var conn = DriverManager.getConnection(CONNECTION_URL, USER, PASSWORD);
@@ -46,6 +44,35 @@ public class DatabaseManager {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
+    public static void createTables() throws DataAccessException {
+        try (var conn = getConnection()) {
+            var statement = conn.createStatement();
+
+            //create tables form sql statements
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS users (\n" +
+                    "    username VARCHAR(255) PRIMARY KEY,\n" +
+                    "    password VARCHAR(255) NOT NULL,\n" +
+                    "    email VARCHAR(255) NOT NULL\n" +
+                    ");");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS games (\n" +
+                    "    game_id INT PRIMARY KEY AUTO_INCREMENT,\n" +
+                    "    game_name VARCHAR(255) NOT NULL,\n" +
+                    "    game_state TEXT NOT NULL,\n" +
+                    "    white_username VARCHAR(255),\n" +
+                    "    black_username VARCHAR(255),\n" +
+                    "    FOREIGN KEY (white_username) REFERENCES users(username),\n" +
+                    "    FOREIGN KEY (black_username) REFERENCES users(username)\n" +
+                    ");");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS auth_tokens (\n" +
+                    "    auth_token VARCHAR(255) PRIMARY KEY,\n" +
+                    "    username VARCHAR(255) NOT NULL,\n" +
+                    "    FOREIGN KEY (username) REFERENCES users(username)\n" +
+                    ");");
+        } catch(SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
     }
@@ -62,7 +89,6 @@ public class DatabaseManager {
      * }
      * </code>
      */
-
 
     static Connection getConnection() throws DataAccessException {
         try {

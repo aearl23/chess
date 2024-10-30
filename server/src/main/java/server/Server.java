@@ -3,13 +3,12 @@ package server;
 import model.UserData;
 import spark.*;
 import com.google.gson.Gson;
-import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
-import service.UserService;
-import service.GameService;
-import service.AdminService;
+import dataaccess.*;
+import service.*;
 import java.util.List;
-import model.GameData;
+import model.*;
+
+import javax.xml.crypto.Data;
 
 
 public class Server {
@@ -20,11 +19,20 @@ public class Server {
     private final Gson gson;
 
     public Server(){
-        DataAccess dataAccess = new MemoryDataAccess();
-        this.userService = new UserService(dataAccess);
-        this.gameService = new GameService(dataAccess);
-        this.adminService = new AdminService(dataAccess);
-        this.gson = new Gson();
+        try {
+            DatabaseManager.createDatabase();
+            DatabaseManager.createTables();
+
+            DataAccess dataAccess = new MySqlDataAccess();
+
+            this.userService = new UserService(dataAccess);
+            this.gameService = new GameService(dataAccess);
+            this.adminService = new AdminService(dataAccess);
+            this.gson = new Gson();
+        } catch (DataAccessException e) {
+            System.err.println("Failed to initialize database: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     public int run(int desiredPort) {
