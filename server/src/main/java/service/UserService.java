@@ -3,7 +3,7 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
-
+import org.mindrot.jbcrypt.BCrypt;
 import java.util.UUID;
 
 public class UserService {
@@ -17,15 +17,16 @@ public class UserService {
   public AuthData register(UserData user) throws DataAccessException, DatabaseException {
     //check if user already exists
     try {
-      if (dataAccess.getUser(user.username()) != null) {
+      UserData existingUser = dataAccess.getUser(user.username());
+      if (existingUser != null) {
         throw new DatabaseException("Error: username already taken");
       }
       //create user
       dataAccess.createUser(user);
       //generate authToken
       return createAuthToken(user.username());
-    } catch (Exception e) {
-      throw e;
+    } catch (DataAccessException e) {
+      throw new DatabaseException("Error registering user: " + e.getMessage());
     }
   }
 
@@ -42,7 +43,7 @@ public class UserService {
         throw new InvalidUsernameException("Error: invalid username");
       }
 
-      if (!storedUser.password().equals(loginData.password())) {
+      if (!BCrypt.checkpw(loginData.password(), storedUser.password())) {
         throw new WrongPasswordException("Error: wrong password");
       }
 

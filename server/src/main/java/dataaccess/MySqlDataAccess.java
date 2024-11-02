@@ -6,8 +6,8 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.engine.discovery.predicates.IsTestClassWithTests;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -20,9 +20,14 @@ public class MySqlDataAccess implements DataAccess {
   @Override
   public void clear() throws DataAccessException {
     try (var conn=DatabaseManager.getConnection()) {
-      try (var statement=conn.prepareStatement(
-              "DELETE FROM auth_tokens; DELETE FROM games; DELETE FROM users;")) {
+      try (var statement=conn.prepareStatement("DELETE FROM auth_tokens")) {
         statement.executeUpdate();
+      }
+      try (var statement2 = conn.prepareStatement("DELETE FROM games")) {
+        statement2.executeUpdate();
+      }
+      try (var statement3 = conn.prepareStatement("DELETE FROM users")){
+        statement3.executeUpdate();
       }
     } catch (SQLException e) {
       throw new DataAccessException(e.getMessage());
@@ -60,7 +65,7 @@ public class MySqlDataAccess implements DataAccess {
                     resultsSet.getString("email")
             );
           }
-          throw new DatabaseException("User not found");
+          return null;
         }
       }
     } catch (SQLException e) {
@@ -154,6 +159,7 @@ public class MySqlDataAccess implements DataAccess {
         statement.setString(2, game.whiteUsername());
         statement.setString(3, game.blackUsername());
         statement.setInt(4, game.gameID());
+        statement.executeUpdate();
 
         int rowsAffected = statement.executeUpdate();
         if (rowsAffected == 0) {
