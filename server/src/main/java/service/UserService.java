@@ -21,8 +21,10 @@ public class UserService {
       if (existingUser != null) {
         throw new DatabaseException("Error: username already taken");
       }
+      String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+      UserData userWithHashedPassword = new UserData(user.username(), hashedPassword, user.email());
       //create user
-      dataAccess.createUser(user);
+      dataAccess.createUser(userWithHashedPassword);
       //generate authToken
       return createAuthToken(user.username());
     } catch (DataAccessException e) {

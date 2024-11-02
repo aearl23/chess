@@ -3,7 +3,6 @@ package chess;
 import java.util.Collection;
 import java.util.Objects;
 
-
 /**
  * Represents a single chess piece
  * <p>
@@ -14,12 +13,10 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
-//    private final ChessRules chessRules;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor=pieceColor;
         this.type=type;
-//        this.chessRules = new ChessRules(); //initialize all move rules
     }
 
     /**
@@ -57,9 +54,8 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        //return ChessRules.pieceRule(type, board, myPosition);
-        return ChessRules.getPieceMoves(type, board, myPosition);
-
+        ChessRules rules = new ChessRules();
+        return rules.getPieceMoves(this.getPieceType(), board, myPosition);
     }
 
     @Override
@@ -69,7 +65,6 @@ public class ChessPiece {
       return pieceColor == that.pieceColor && type == that.type;
     }
 
-    //previously had chessRules as an arguement
     @Override
     public int hashCode() {
         return Objects.hash(pieceColor, type);
