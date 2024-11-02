@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import org.junit.jupiter.engine.discovery.predicates.IsTestClassWithTests;
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.SQLException;
 import java.sql.Statement;
