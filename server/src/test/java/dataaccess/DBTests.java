@@ -53,9 +53,9 @@ public class DBTests {
 
   @Test
   @DisplayName("user doesn't exist")
-  public void getUser_nonexistent_fails() {
-    assertThrows(DatabaseException.class,
-            () -> dataAccess.getUser("nonexistentUser"));
+  public void getUser_nonexistent_fails() throws DatabaseException{
+    UserData retrievedUser = dataAccess.getUser("nonexistentUser");
+    assertNull(retrievedUser);
   }
 
   @Test
@@ -90,6 +90,12 @@ public class DBTests {
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
 
+    // Create users first
+    UserData whiteUser = new UserData("white_player", "pass123", "white@email.com");
+    UserData blackUser = new UserData("black_player", "pass123", "black@email.com");
+    dataAccess.createUser(whiteUser);
+    dataAccess.createUser(blackUser);
+
     // Update game with players
     GameData updatedGame = new GameData(gameId, "white_player", "black_player",
             "Test Game", initialGame);
@@ -108,10 +114,17 @@ public class DBTests {
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
 
+    // Create users first
+    UserData whiteUser = new UserData("white_player", "pass123", "white@email.com");
+    UserData blackUser = new UserData("black_player", "pass123", "black@email.com");
+    dataAccess.createUser(whiteUser);
+    dataAccess.createUser(blackUser);
+
     // Make a move
-    ChessGame chessGame = initialGame;
-    ChessPosition fromPosition = new ChessPosition(2, 1); // e.g., pawn at e2
-    ChessPosition toPosition = new ChessPosition(4, 1);   // move to e4
+    ChessGame chessGame = new ChessGame();
+    chessGame.getBoard().resetBoard();
+    ChessPosition fromPosition = new ChessPosition(2, 1);
+    ChessPosition toPosition = new ChessPosition(4, 1);
     chessGame.makeMove(new ChessMove(fromPosition, toPosition, null));
 
     // Update game with new state
@@ -142,6 +155,10 @@ public class DBTests {
   @Test
   @DisplayName("create auth positive")
   public void createAuth_success() throws DataAccessException {
+    // First create a user since auth requires valid user
+    UserData user = new UserData("testUser", "password123", "test@email.com");
+    dataAccess.createUser(user);
+
     AuthData auth = new AuthData("testToken", "testUser");
     assertDoesNotThrow(() -> dataAccess.createAuth(auth));
   }
@@ -149,11 +166,16 @@ public class DBTests {
   @Test
   @DisplayName("get Auth Positive")
   public void getAuth_success() throws DataAccessException, UnauthorizedException {
+    // First create a user
+    UserData user = new UserData("testUser", "password123", "test@email.com");
+    dataAccess.createUser(user);
+
     AuthData auth = new AuthData("testToken", "testUser");
     dataAccess.createAuth(auth);
 
     AuthData retrievedAuth = dataAccess.getAuth("testToken");
     assertEquals(auth.username(), retrievedAuth.username());
+    assertEquals(auth.authToken(), retrievedAuth.authToken());
   }
 
   @Test
@@ -166,10 +188,15 @@ public class DBTests {
   @Test
   @DisplayName("Delete Auth Positive")
   public void deleteAuth_success() throws DataAccessException, UnauthorizedException {
+    // First create a user
+    UserData user = new UserData("testUser", "password123", "test@email.com");
+    dataAccess.createUser(user);
+
     AuthData auth = new AuthData("testToken", "testUser");
     dataAccess.createAuth(auth);
 
     assertDoesNotThrow(() -> dataAccess.deleteAuth("testToken"));
+    // Verify the auth token is deleted
     assertThrows(UnauthorizedException.class,
             () -> dataAccess.getAuth("testToken"));
   }
