@@ -35,13 +35,11 @@ public class MySqlDataAccess implements DataAccess {
 
   @Override
   public void createUser(UserData user) throws InvalidUsernameException {
-    String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
-
     try (var conn = DatabaseManager.getConnection()) {
       try (var statement = conn.prepareStatement(
               "INSERT INTO users (username, password, email) VALUES (?, ?, ?)")) {
         statement.setString(1, user.username());
-        statement.setString(2, hashedPassword);
+        statement.setString(2, user.password());
         statement.setString(3, user.email());
         statement.executeUpdate();
       }

@@ -4,6 +4,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
+import java.util.Collection;
 import java.util.UUID;
 
 public class UserService {
@@ -45,6 +46,7 @@ public class UserService {
         throw new InvalidUsernameException("Error: invalid username");
       }
 
+      //compare passwords
       if (!BCrypt.checkpw(loginData.password(), storedUser.password())) {
         throw new WrongPasswordException("Error: wrong password");
       }
@@ -54,8 +56,8 @@ public class UserService {
       dataAccess.createAuth(authData);
       return authData;
 
-    }  catch (Exception e) {
-       throw e;
+    }  catch (IllegalArgumentException e) {
+       throw new WrongPasswordException("Error: unauthorized");
     }
   }
 
