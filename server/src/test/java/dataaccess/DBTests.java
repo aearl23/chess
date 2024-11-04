@@ -42,7 +42,7 @@ public class DBTests {
 
   @Test
   @DisplayName("get user positive")
-  public void getUser_success() throws InvalidUsernameException, DatabaseException {
+  public void getUserSuccess() throws InvalidUsernameException, DatabaseException {
     UserData user = new UserData("testUser", "password123", "test@email.com");
     dataAccess.createUser(user);
 
@@ -53,14 +53,14 @@ public class DBTests {
 
   @Test
   @DisplayName("user doesn't exist")
-  public void getUser_nonexistent_fails() throws DatabaseException{
+  public void getUserNonexistentFails() throws DatabaseException{
     UserData retrievedUser = dataAccess.getUser("nonexistentUser");
     assertNull(retrievedUser);
   }
 
   @Test
   @DisplayName("Create game positive")
-  public void createGame_success() throws DataAccessException {
+  public void createGameSuccess() throws DataAccessException {
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
     assertTrue(gameId > 0);
@@ -68,7 +68,7 @@ public class DBTests {
 
   @Test
   @DisplayName("get game positive")
-  public void getGame_success() throws DataAccessException, BadRequestException {
+  public void getGameSuccess() throws DataAccessException, BadRequestException {
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
 
@@ -78,14 +78,14 @@ public class DBTests {
 
   @Test
   @DisplayName("Game nonexistent")
-  public void getGame_nonexistent_fails() {
+  public void getGameNonexistentFails() {
     assertThrows(BadRequestException.class,
             () -> dataAccess.getGame(99999));
   }
 
   @Test
   @DisplayName("Update game positive")
-  public void updateGame_success() throws DataAccessException, BadRequestException {
+  public void updateGameSuccess() throws DataAccessException, BadRequestException {
     // Create initial game
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
@@ -109,7 +109,7 @@ public class DBTests {
 
   @Test
   @DisplayName("update game")
-  public void updateGame_withMoves() throws DataAccessException, BadRequestException, InvalidMoveException {
+  public void updateGameWithMoves() throws DataAccessException, BadRequestException, InvalidMoveException {
     // Create initial game
     GameData game = new GameData(0, null, null, "Test Game", initialGame);
     int gameId = dataAccess.createGame(game);
@@ -140,7 +140,7 @@ public class DBTests {
 
   @Test
   @DisplayName("list games Positive")
-  public void listGames_success() throws DataAccessException {
+  public void listGamesSuccess() throws DataAccessException {
     // Create multiple games
     GameData game1 = new GameData(0, null, null, "Game 1", initialGame);
     GameData game2 = new GameData(0, null, null, "Game 2", initialGame);
@@ -154,7 +154,7 @@ public class DBTests {
 
   @Test
   @DisplayName("create auth positive")
-  public void createAuth_success() throws DataAccessException {
+  public void createAuthSuccess() throws DataAccessException {
     // First create a user since auth requires valid user
     UserData user = new UserData("testUser", "password123", "test@email.com");
     dataAccess.createUser(user);
@@ -165,7 +165,7 @@ public class DBTests {
 
   @Test
   @DisplayName("get Auth Positive")
-  public void getAuth_success() throws DataAccessException, UnauthorizedException {
+  public void getAuthSuccess() throws DataAccessException, UnauthorizedException {
     // First create a user
     UserData user = new UserData("testUser", "password123", "test@email.com");
     dataAccess.createUser(user);
@@ -180,14 +180,14 @@ public class DBTests {
 
   @Test
   @DisplayName("Invalid auth")
-  public void getAuth_invalid_fails() {
+  public void getAuthInvalidFails() {
     assertThrows(UnauthorizedException.class,
             () -> dataAccess.getAuth("invalidToken"));
   }
 
   @Test
   @DisplayName("Delete Auth Positive")
-  public void deleteAuth_success() throws DataAccessException, UnauthorizedException {
+  public void deleteAuthSuccess() throws DataAccessException, UnauthorizedException {
     // First create a user
     UserData user = new UserData("testUser", "password123", "test@email.com");
     dataAccess.createUser(user);
@@ -203,14 +203,14 @@ public class DBTests {
 
   @Test
   @DisplayName("Delete Auth fails")
-  public void deleteAuth_nonexistent_fails() {
+  public void deleteAuthNonexistentFails() {
     assertThrows(UnauthorizedException.class,
             () -> dataAccess.deleteAuth("nonexistentToken"));
   }
 
   @Test
   @DisplayName("Clear Test")
-  public void clear_success() {
+  public void clearSuccess() {
     assertDoesNotThrow(() -> dataAccess.clear());
   }
 }
