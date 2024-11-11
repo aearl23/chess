@@ -78,6 +78,7 @@ public class ServerFacadeTests {
 
 
     @Test
+    @DisplayName("logout Positive")
     void logoutPositive() throws Exception {
         // Register and login
         var user = new UserData(USERNAME, PASSWORD, EMAIL);
