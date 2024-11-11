@@ -96,6 +96,7 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("CreateGame Positive")
     void createGamePositive() throws Exception {
         // Register and get auth token
         var user = new UserData(USERNAME, PASSWORD, EMAIL);
