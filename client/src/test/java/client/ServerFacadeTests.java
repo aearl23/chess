@@ -89,6 +89,7 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("logout Negative")
     void logoutNegative() {
         // Try to logout with invalid auth token
         assertThrows(Exception.class, () -> facade.logout("invalid_token"));
