@@ -1,13 +1,10 @@
 package client;
 
-import jdk.jfr.Experimental;
 import org.junit.jupiter.api.*;
 import server.Server;
 import model.AuthData;
 import model.UserData;
-import ui.ServerFacade;
-
-import java.awt.*;
+import model.GameData;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,8 +39,7 @@ public class ServerFacadeTests {
     @Test
     @DisplayName("Register Positive")
     public void registerPositive() throws Exception {
-        var user = new UserData(USERNAME, PASSWORD, EMAIL);
-        AuthData auth = facade.register(user);
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
         assertNotNull(auth);
         assertNotNull(auth.authToken());
         assertEquals(USERNAME, auth.username());
@@ -52,18 +48,15 @@ public class ServerFacadeTests {
     @Test
     @DisplayName("Register Negative")
     public void registerNegative() throws Exception {
-        var user = new UserData(null, PASSWORD, EMAIL);
-        assertThrows(Exception.class, () -> facade.register(user));
+        assertThrows(Exception.class, () -> facade.register(null, PASSWORD, EMAIL));
     }
 
     @Test
     @DisplayName("login Positive")
     public void loginPositive() throws Exception {
-        var registerUser = new UserData(USERNAME, PASSWORD, EMAIL);
-        facade.register(registerUser);
+        facade.register(USERNAME, PASSWORD, EMAIL);
 
-        var loginUser = new UserData(USERNAME, PASSWORD, null);
-        AuthData auth = facade.login(loginUser);
+        AuthData auth = facade.login(USERNAME, PASSWORD);
         assertNotNull(auth);
         assertNotNull(auth.authToken());
         assertEquals(USERNAME, auth.username());
@@ -72,8 +65,7 @@ public class ServerFacadeTests {
     @Test
     @DisplayName("login Negative")
     void loginNegative() throws Exception {
-        var loginUser = new UserData(USERNAME, PASSWORD, null);
-        assertThrows(Exception.class, () -> facade.login(loginUser));
+        assertThrows(Exception.class, () -> facade.login(USERNAME, null));
     }
 
 
@@ -81,8 +73,7 @@ public class ServerFacadeTests {
     @DisplayName("logout Positive")
     void logoutPositive() throws Exception {
         // Register and login
-        var user = new UserData(USERNAME, PASSWORD, EMAIL);
-        AuthData auth = facade.register(user);
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
 
         // Logout
         assertDoesNotThrow(() -> facade.logout(auth.authToken()));
@@ -99,8 +90,7 @@ public class ServerFacadeTests {
     @DisplayName("CreateGame Positive")
     void createGamePositive() throws Exception {
         // Register and get auth token
-        var user = new UserData(USERNAME, PASSWORD, EMAIL);
-        AuthData auth = facade.register(user);
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
 
         // Create game
         assertDoesNotThrow(() -> facade.createGame("testGame", auth.authToken()));
@@ -110,8 +100,7 @@ public class ServerFacadeTests {
     @DisplayName("listGamesPositive")
     void listGamesPositive() throws Exception {
         // Register and get auth token
-        var user = new UserData(USERNAME, PASSWORD, EMAIL);
-        AuthData auth = facade.register(user);
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
 
         // Create a game
         facade.createGame("testGame", auth.authToken());
