@@ -68,8 +68,8 @@ public class ServerFacade {
   }
 
   public void observeGame(int gameID, String authToken) throws Exception {
-    record ObserveGameRequest(int gameID) {}
-    var request = new ObserveGameRequest(gameID);
+    record ObserveGameRequest(Integer gameID, String playerColor) {}
+    var request = new ObserveGameRequest(gameID, null);
     makeRequest("PUT", "/game", request, null, authToken);
   }
 

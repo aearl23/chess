@@ -245,7 +245,7 @@ public class ChessClient {
       throw new IllegalArgumentException("Invalid game number");
     }
 
-    GameData selectedGame=gamesList.get(gameNumber);
+    GameData selectedGame=gamesList.get(gameNumber - 1);
     // Join as observer (null color)
     server.observeGame(selectedGame.gameID(), authToken);
 
