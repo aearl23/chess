@@ -34,7 +34,7 @@ public class ChessBoardUI {
   }
 
   private static void printHeaders(boolean reversed) {
-    System.out.print("     ");
+    System.out.print("    ");
     for (char col = reversed ? 'h' : 'a';
          reversed ? col >= 'a' : col <= 'h';
          col = (char) (reversed ? col - 1 : col + 1)) {

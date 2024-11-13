@@ -67,6 +67,12 @@ public class ServerFacade {
     makeRequest("PUT", "/game", request, null, authToken);
   }
 
+  public void observeGame(int gameID, String authToken) throws Exception {
+    record ObserveGameRequest(int gameID) {}
+    var request = new ObserveGameRequest(gameID);
+    makeRequest("PUT", "/game", request, null, authToken);
+  }
+
   public void clear() throws Exception {
     makeRequest("DELETE", "/db", null, null, null);
   }
