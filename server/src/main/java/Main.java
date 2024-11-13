@@ -1,6 +1,7 @@
 import chess.*;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
+import server.Server;
 
 import javax.xml.crypto.Data;
 
@@ -9,5 +10,7 @@ public class Main {
             var piece=new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
             System.out.println("♕ 240 Chess Server: " + piece);
             DatabaseManager.createDatabase();
+            new Server().run(8081);
+
     }
 }
