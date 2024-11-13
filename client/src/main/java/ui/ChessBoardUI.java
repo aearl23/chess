@@ -11,82 +11,78 @@ public class ChessBoardUI {
 
   public static void displayGame(ChessBoard board) {
     // Display both board orientations
-    System.out.println(SET_TEXT_BOLD + "BLACK PERSPECTIVE" + RESET_TEXT_BOLD_FAINT);
+    System.out.println("\nBLACK PERSPECTIVE");
     displayBoardBlack(board);
-    System.out.println("\n" + SET_TEXT_BOLD + "WHITE PERSPECTIVE" + RESET_TEXT_BOLD_FAINT);
+    System.out.println("\nWHITE PERSPECTIVE");
     displayBoardWhite(board);
   }
 
   private static void displayBoardWhite(ChessBoard board) {
-    printHeaders();
+    printHeaders(false);
     for (int row = BOARD_SIZE; row >= 1; row--) {
       printRow(row, board, false);
     }
-    printHeaders();
+    printHeaders(false);
   }
 
   private static void displayBoardBlack(ChessBoard board) {
-    printHeadersReversed();
+    printHeaders(true);
     for (int row = 1; row <= BOARD_SIZE; row++) {
       printRow(row, board, true);
     }
-    printHeadersReversed();
+    printHeaders(true);
   }
 
-  private static void printHeaders() {
-    System.out.print("    ");
-    for (char col = 'a'; col <= 'h'; col++) {
-      System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK + " " + col + " ");
+  private static void printHeaders(boolean reversed) {
+    System.out.print("     ");
+    for (char col = reversed ? 'h' : 'a';
+         reversed ? col >= 'a' : col <= 'h';
+         col = (char) (reversed ? col - 1 : col + 1)) {
+       System.out.print(col + "  ");
     }
-    System.out.println(RESET_BG_COLOR);
+    System.out.println();
   }
 
-  private static void printHeadersReversed() {
-    System.out.print("    ");
-    for (char col = 'h'; col >= 'a'; col--) {
-      System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK + " " + col + " ");
-    }
-    System.out.println(RESET_BG_COLOR);
-  }
 
   private static void printRow(int row, ChessBoard board, boolean reversed) {
     // Print row number
-    System.out.print(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK + " " + row + " " + RESET_BG_COLOR);
+    System.out.print(" " + row + " ");
 
     // Print squares
     for (int col = (reversed ? BOARD_SIZE : 1);
          reversed ? col >= 1 : col <= BOARD_SIZE;
          col = (reversed ? col - 1 : col + 1)) {
 
-      boolean isLightSquare = (row + col) % 2 == 0;
+      boolean isLightSquare = ((row + col) % 2 != 0);
       ChessPosition position = new ChessPosition(row, col);
       ChessPiece piece = board.getPiece(position);
+
 
       // Set square background color
       System.out.print(isLightSquare ? SET_BG_COLOR_WHITE : SET_BG_COLOR_DARK_GREY);
 
       // Print piece or empty square
       if (piece == null) {
-        System.out.print(EMPTY);
+        System.out.print("   ");
       } else {
-        System.out.print(getPieceString(piece));
+        String color = (piece.getTeamColor() == ChessGame.TeamColor.WHITE ? SET_TEXT_COLOR_RED : SET_TEXT_COLOR_BLUE);
+        System.out.print(color + " " + getPieceString(piece) + " ");
       }
+      System.out.print(RESET_TEXT_COLOR);
     }
 
     // Reset colors and print row number again
-    System.out.println(RESET_BG_COLOR + SET_BG_COLOR_LIGHT_GREY +
-            SET_TEXT_COLOR_BLACK + " " + row + " " + RESET_BG_COLOR + RESET_TEXT_COLOR);
+    System.out.println(RESET_BG_COLOR + " " + row + " ");
   }
 
   private static String getPieceString(ChessPiece piece) {
-    boolean isWhite = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
     return switch (piece.getPieceType()) {
-      case KING -> isWhite ? WHITE_KING : BLACK_KING;
-      case QUEEN -> isWhite ? WHITE_QUEEN : BLACK_QUEEN;
-      case BISHOP -> isWhite ? WHITE_BISHOP : BLACK_BISHOP;
-      case KNIGHT -> isWhite ? WHITE_KNIGHT : BLACK_KNIGHT;
-      case ROOK -> isWhite ? WHITE_ROOK : BLACK_ROOK;
-      case PAWN -> isWhite ? WHITE_PAWN : BLACK_PAWN;
+      case KING -> "K";
+      case QUEEN -> "Q";
+      case BISHOP -> "B";
+      case KNIGHT -> "N";
+      case ROOK -> "R";
+      case PAWN -> "P";
     };
   }
 }
