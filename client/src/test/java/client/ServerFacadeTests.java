@@ -97,6 +97,12 @@ public class ServerFacadeTests {
     }
 
     @Test
+    @DisplayName("CreateGame Negative")
+    void createGameNegative() {
+        assertThrows(Exception.class, () -> facade.createGame("testGame", "invalid_token"));
+    }
+
+    @Test
     @DisplayName("listGamesPositive")
     void listGamesPositive() throws Exception {
         // Register and get auth token
@@ -109,6 +115,56 @@ public class ServerFacadeTests {
         var games = facade.listGames(auth.authToken());
         assertNotNull(games);
         assertEquals(1, games.size());
+    }
+
+    @Test
+    @DisplayName("ListGames Negative")
+    void listGamesNegative() {
+        assertThrows(Exception.class, () -> facade.listGames("invalid_token"));
+    }
+
+    @Test
+    @DisplayName("JoinGame Positive")
+    void joinGamePositive() throws Exception {
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
+        GameData game = facade.createGame("testGame", auth.authToken());
+        assertDoesNotThrow(() -> facade.joinGame("WHITE", game.gameID(), auth.authToken()));
+    }
+
+    @Test
+    @DisplayName("JoinGame Negative")
+    void joinGameNegative() {
+        assertThrows(Exception.class, () -> facade.joinGame("WHITE", 999, "invalid_token"));
+    }
+
+    @Test
+    @DisplayName("ObserveGame Positive")
+    void observeGamePositive() throws Exception {
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
+        GameData game = facade.createGame("testGame", auth.authToken());
+        assertDoesNotThrow(() -> facade.observeGame(game.gameID(), auth.authToken()));
+    }
+
+    @Test
+    @DisplayName("ObserveGame Negative")
+    void observeGameNegative() {
+        assertThrows(Exception.class, () -> facade.observeGame(999, "invalid_token"));
+    }
+
+    @Test
+    @DisplayName("Clear Positive")
+    void clearPositive() {
+        assertDoesNotThrow(() -> facade.clear());
+    }
+
+    @Test
+    @DisplayName("Clear Negative")
+    void clearNegative() throws Exception {
+        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
+        facade.createGame("testGame", auth.authToken());
+        facade.clear();
+        // Verify the database is cleared by trying to list games
+        assertThrows(Exception.class, () -> facade.listGames(auth.authToken()));
     }
 }
 

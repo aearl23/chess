@@ -273,6 +273,8 @@ public class ChessGame {
         }
         return null; // King not found
     }
+
+
     /**
      * Sets this game's chessboard with a given board
      *

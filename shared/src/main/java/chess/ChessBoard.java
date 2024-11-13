@@ -60,8 +60,11 @@ public class ChessBoard {
         this.board = new ChessPiece[8][8];
 
         //layout pieces for back Row
-        ChessPiece.PieceType[] backRow = {ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
-                ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
+        ChessPiece.PieceType[] backRow = {ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP,
+                ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING,
+                ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.KNIGHT,
+                ChessPiece.PieceType.ROOK};
 
         //add pieces to the board
         //row of pawn and back row pieces for white and black
@@ -95,10 +98,6 @@ public class ChessBoard {
 
     @Override
     public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (!(o instanceof ChessBoard that)) return false;
-//      return Arrays.deepEquals(board, that.board);
-//    }
         if (this == o) {
             return true;
         }

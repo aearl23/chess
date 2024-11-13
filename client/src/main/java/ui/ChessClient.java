@@ -121,7 +121,7 @@ public class ChessClient {
           case "create" -> createGame();
           case "list" -> listGames();
           case "join" -> joinGame();
-          case "observe" -> observeGame();
+          case "observe" -> joinGame();
           default -> System.out.println("Unknown command. Type 'help' for list of commands.");
         }
       } catch (Exception e) {
@@ -227,27 +227,6 @@ public class ChessClient {
 
     GameData selectedGame=gamesList.get(gameNumber - 1);
     server.joinGame(color, selectedGame.gameID(), authToken);
-
-    // Display the chess board
-    displayGame(selectedGame);
-  }
-
-  private void observeGame() throws Exception {
-    if (gamesList.isEmpty()) {
-      System.out.println("Please list games first using 'list' command");
-      return;
-    }
-
-    System.out.print("Enter game number to observe (1-" + gamesList.size() + "): ");
-    int gameNumber=Integer.parseInt(scanner.nextLine());
-
-    if (gameNumber < 1 || gameNumber > gamesList.size()) {
-      throw new IllegalArgumentException("Invalid game number");
-    }
-
-    GameData selectedGame=gamesList.get(gameNumber - 1);
-    // Join as observer (null color)
-    server.observeGame(selectedGame.gameID(), authToken);
 
     // Display the chess board
     displayGame(selectedGame);
