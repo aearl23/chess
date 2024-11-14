@@ -138,20 +138,6 @@ public class ServerFacadeTests {
     }
 
     @Test
-    @DisplayName("ObserveGame Positive")
-    void observeGamePositive() throws Exception {
-        AuthData auth = facade.register(USERNAME, PASSWORD, EMAIL);
-        GameData game = facade.createGame("testGame", auth.authToken());
-        assertDoesNotThrow(() -> facade.observeGame(game.gameID(), auth.authToken()));
-    }
-
-    @Test
-    @DisplayName("ObserveGame Negative")
-    void observeGameNegative() {
-        assertThrows(Exception.class, () -> facade.observeGame(999, "invalid_token"));
-    }
-
-    @Test
     @DisplayName("Clear Positive")
     void clearPositive() {
         assertDoesNotThrow(() -> facade.clear());

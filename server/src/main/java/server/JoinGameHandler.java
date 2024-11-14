@@ -21,15 +21,15 @@ public class JoinGameHandler implements Route {
     public Object handle(Request request, Response response) {
       //grab authtoken from headers
       String authToken = request.headers("authorization");
-      try{
+      try {
         //parse request body
-        var joinRequest = gson.fromJson(request.body(), JoinGameRequest.class);
+        var joinRequest=gson.fromJson(request.body(), JoinGameRequest.class);
 
-        if (authToken == null || authToken.isEmpty()){
+        if (authToken == null || authToken.isEmpty()) {
           response.status(401);
           return gson.toJson(new ErrorResponse("Error: unauthorized"));
         }
-        //call the service to join the game
+
         gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
         response.status(200);
         return "{}"; //Empty json object for success

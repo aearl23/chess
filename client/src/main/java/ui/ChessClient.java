@@ -121,7 +121,7 @@ public class ChessClient {
           case "create" -> createGame();
           case "list" -> listGames();
           case "join" -> joinGame();
-          case "observe" -> joinGame();
+          case "observe" -> observeGame();
           default -> System.out.println("Unknown command. Type 'help' for list of commands.");
         }
       } catch (Exception e) {
@@ -230,6 +230,22 @@ public class ChessClient {
 
     // Display the chess board
     displayGame(selectedGame);
+  }
+
+  private void observeGame() {
+    if (gamesList.isEmpty()) {
+      System.out.println("Please list games first using 'list' command");
+      return;
+    }
+
+    System.out.print("Enter game number (1-" + gamesList.size() + "): ");
+    int gameNumber = Integer.parseInt(scanner.nextLine());
+    if (gameNumber < 1 || gameNumber > gamesList.size()) {
+      throw new IllegalArgumentException("Invalid game number");
+    }
+
+    GameData selectedGame = gamesList.get(gameNumber - 1);
+    displayGame(selectedGame);  // Display the game's current state
   }
 
   private void displayGame(GameData game) {
