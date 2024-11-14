@@ -7,7 +7,7 @@ import java.util.Collection;
 public class ChessRules {
 
   // Define the movement rules for each piece type using an array
-  private static final MoveRules[] moveRules = new MoveRules[ChessPiece.PieceType.values().length];
+  private static final MoveRules[] MOVE_RULES = new MoveRules[ChessPiece.PieceType.values().length];
 
   @FunctionalInterface
   public interface MoveRules {
@@ -16,17 +16,17 @@ public class ChessRules {
 
   static {
     // Initialize the move rules array
-    moveRules[ChessPiece.PieceType.KING.ordinal()] = ChessRules::kingMoves;
-    moveRules[ChessPiece.PieceType.QUEEN.ordinal()] = ChessRules::queenMoves;
-    moveRules[ChessPiece.PieceType.BISHOP.ordinal()] = ChessRules::bishopMoves;
-    moveRules[ChessPiece.PieceType.KNIGHT.ordinal()] = ChessRules::knightMoves;
-    moveRules[ChessPiece.PieceType.ROOK.ordinal()] = ChessRules::rookMoves;
-    moveRules[ChessPiece.PieceType.PAWN.ordinal()] = ChessRules::pawnMoves;
+    MOVE_RULES[ChessPiece.PieceType.KING.ordinal()] = ChessRules::kingMoves;
+    MOVE_RULES[ChessPiece.PieceType.QUEEN.ordinal()] = ChessRules::queenMoves;
+    MOVE_RULES[ChessPiece.PieceType.BISHOP.ordinal()] = ChessRules::bishopMoves;
+    MOVE_RULES[ChessPiece.PieceType.KNIGHT.ordinal()] = ChessRules::knightMoves;
+    MOVE_RULES[ChessPiece.PieceType.ROOK.ordinal()] = ChessRules::rookMoves;
+    MOVE_RULES[ChessPiece.PieceType.PAWN.ordinal()] = ChessRules::pawnMoves;
   }
 
   // Static method to get piece moves without creating an instance
   public static Collection<ChessMove> getPieceMoves(ChessPiece.PieceType pieceType, ChessBoard board, ChessPosition position) {
-    MoveRules rules = moveRules[pieceType.ordinal()];
+    MoveRules rules = MOVE_RULES[pieceType.ordinal()];
     if (rules != null) {
       return rules.pieceMoves(board, position);
     }

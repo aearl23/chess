@@ -77,50 +77,61 @@ public class ServerFacade {
     makeRequest("DELETE", "/db", null, null, null);
   }
 
-
   private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws Exception {
     try {
-      URL url = new URI(serverUrl + path).toURL();
-      HttpURLConnection http = (HttpURLConnection) url.openConnection();
-      http.setRequestMethod(method);
-      http.setDoOutput(true);
-
-      // Set headers
-      http.addRequestProperty("Content-Type", "application/json");
-      if (authToken != null) {
-        http.addRequestProperty("Authorization", authToken);
-      }
-
-      // Send request body if it exists
-      if (request != null) {
-        try (OutputStream reqBody = http.getOutputStream()) {
-          String reqData = gson.toJson(request);
-          reqBody.write(reqData.getBytes());
-        }
-      }
-
-      http.connect();
-      int statusCode = http.getResponseCode();
-
-      // Handle different status codes appropriately
-      switch (statusCode) {
-        case HttpURLConnection.HTTP_OK -> {
-          if (responseClass != null) {
-            try (InputStream respBody = http.getInputStream()) {
-              InputStreamReader reader = new InputStreamReader(respBody);
-              return gson.fromJson(reader, responseClass);
-            }
-          }
-          return null;
-        }
-        case HttpURLConnection.HTTP_BAD_REQUEST -> throw new Exception("Error: Invalid request");
-        case HttpURLConnection.HTTP_UNAUTHORIZED -> throw new Exception("Error: Unauthorized");
-        case HttpURLConnection.HTTP_FORBIDDEN -> throw new Exception("Error: Already taken");
-        default -> throw new Exception("Error: " + readError(http));
-      }
+      HttpURLConnection http = setupConnection(method, path, authToken);
+      sendRequestBody(http, request);
+      return handleResponse(http, responseClass);
     } catch (Exception ex) {
       throw new Exception("Error: " + ex.getMessage());
     }
+  }
+
+  private HttpURLConnection setupConnection(String method, String path, String authToken) throws Exception {
+    URL url = new URI(serverUrl + path).toURL();
+    HttpURLConnection http = (HttpURLConnection) url.openConnection();
+    http.setRequestMethod(method);
+    http.setDoOutput(true);
+
+    // Set headers
+    http.addRequestProperty("Content-Type", "application/json");
+    if (authToken != null) {
+      http.addRequestProperty("Authorization", authToken);
+    }
+
+    return http;
+  }
+
+  private void sendRequestBody(HttpURLConnection http, Object request) throws Exception {
+    if (request != null) {
+      try (OutputStream reqBody = http.getOutputStream()) {
+        String reqData = gson.toJson(request);
+        reqBody.write(reqData.getBytes());
+      }
+    }
+    http.connect();
+  }
+
+  private <T> T handleResponse(HttpURLConnection http, Class<T> responseClass) throws Exception {
+    int statusCode = http.getResponseCode();
+
+    return switch (statusCode) {
+      case HttpURLConnection.HTTP_OK -> handleSuccessResponse(http, responseClass);
+      case HttpURLConnection.HTTP_BAD_REQUEST -> throw new Exception("Error: Invalid request");
+      case HttpURLConnection.HTTP_UNAUTHORIZED -> throw new Exception("Error: Unauthorized");
+      case HttpURLConnection.HTTP_FORBIDDEN -> throw new Exception("Error: Already taken");
+      default -> throw new Exception("Error: " + readError(http));
+    };
+  }
+
+  private <T> T handleSuccessResponse(HttpURLConnection http, Class<T> responseClass) throws Exception {
+    if (responseClass != null) {
+      try (InputStream respBody = http.getInputStream()) {
+        InputStreamReader reader = new InputStreamReader(respBody);
+        return gson.fromJson(reader, responseClass);
+      }
+    }
+    return null;
   }
 
   private String readError(HttpURLConnection http) throws IOException {
