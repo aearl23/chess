@@ -31,11 +31,27 @@ public class ServerFacade {
   //Pre-login operations: Help, quit, login, register
 
   public AuthData register(String username, String password, String email) throws Exception{
+    if (username == null || username.trim().isEmpty()) {
+      throw new Exception("Error: Username cannot be empty");
+    }
+    if (password == null || password.trim().isEmpty()) {
+      throw new Exception("Error: Password cannot be empty");
+    }
+    if (email == null || email.trim().isEmpty()) {
+      throw new Exception("Error: Email cannot be empty");
+    }
+
     var user = new UserData(username, password, email);
     return makeRequest("POST", "/user", user, AuthData.class, null);
   }
 
   public AuthData login(String username, String password) throws Exception{
+    if (username == null || username.trim().isEmpty()) {
+      throw new Exception("Error: Username cannot be empty");
+    }
+    if (password == null || password.trim().isEmpty()) {
+      throw new Exception("Error: Password cannot be empty");
+    }
     var user = new UserData(username, password, null);
     return makeRequest("POST", "/session", user, AuthData.class, null);
   }
