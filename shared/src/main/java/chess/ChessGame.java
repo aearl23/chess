@@ -190,4 +190,10 @@ public class ChessGame {
   public ChessBoard getBoard() {
     return board;
   }
+
+  public void setGameOver(boolean resigned) {
+    // Add implementation to mark game as over
+  }
+
 }
+

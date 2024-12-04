@@ -1,5 +1,9 @@
 package client.websocket;
 
+import com.google.gson.Gson;
+import websocket.messages.ServerMessage;
+import websocket.commands.UserGameCommand;
+
 public class WebSocketCommunicator extends WebSocketClient {
   private final ServerMessageObserver observer;
   private final Gson gson;

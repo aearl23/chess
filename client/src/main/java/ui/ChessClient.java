@@ -2,6 +2,8 @@ package ui;
 
 import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
 import client.ServerFacade;
@@ -10,6 +12,7 @@ import model.UserData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Collection;
 import client.ServerFacade;
 
 public class ChessClient {
