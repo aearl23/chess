@@ -4,6 +4,7 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
+import client.ServerFacade;
 import model.UserData;
 
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ public class ChessClient {
   private final Scanner scanner;
   private String authToken=null;
   private List<GameData> gamesList=new ArrayList<>();
+  private GameData currentGame = null;
+  private ChessGame.TeamColor playerColor = null;
+  private boolean inGame = false;
 
   public ChessClient(String serverUrl) {
     server=new ServerFacade(serverUrl);
@@ -249,6 +253,7 @@ public class ChessClient {
   }
 
   private void displayGame(GameData game) {
+    currentGame = game;
     System.out.println("\nGame: " + game.gameName());
     if (game.whiteUsername() != null) {
       System.out.println("White: " + game.whiteUsername());
@@ -259,6 +264,7 @@ public class ChessClient {
     System.out.println();
 
     // Display board in both orientations
+    ChessGame chessGame;
     if (game.game() == null) {
       ChessGame newGame=new ChessGame();
       ChessBoard board=new ChessBoard();
@@ -268,6 +274,164 @@ public class ChessClient {
     } else {
       ChessBoardUI.displayGame(game.game().getBoard());
     }
+    startGameplay(game);
   }
+
+
+  private void startGameplay(GameData game) {
+    try {
+      // Connect to WebSocket
+      server.connectToGame(game.gameID(), authToken);
+      inGame = true;
+
+      // Start gameplay loop
+      gameplayUI();
+    } catch (Exception e) {
+      System.out.println("Error connecting to game: " + e.getMessage());
+    }
+  }
+
+  private void gameplayUI() {
+    while (inGame) {
+      displayGameplayMenu();
+      String command = scanner.nextLine().toLowerCase();
+
+      try {
+        switch (command) {
+          case "help" -> displayGameplayHelp();
+          case "redraw" -> redrawBoard();
+          case "leave" -> leaveGame();
+          case "move" -> makeMove();
+          case "resign" -> resignGame();
+          case "highlight" -> highlightMoves();
+          default -> System.out.println("Unknown command. Type 'help' for list of commands.");
+        }
+      } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
+      }
+    }
+  }
+
+  private void displayGameplayMenu() {
+    System.out.println("""
+                
+                Game Commands:
+                  help - Display available commands
+                  redraw - Redraw the chess board
+                  leave - Leave the game
+                  move - Make a move
+                  resign - Resign the game
+                  highlight - Show legal moves for a piece
+                """);
+  }
+
+  private void displayGameplayHelp() {
+    System.out.println("""
+                Available game commands:
+                  help - Display this help message
+                  redraw - Redraw the chess board
+                  leave - Leave the game and return to main menu
+                  move - Make a move on the board
+                  resign - Resign from the game
+                  highlight - Show legal moves for a selected piece
+                """);
+  }
+
+  private void redrawBoard() {
+    if (currentGame != null && currentGame.game() != null) {
+      ChessBoardUI.displayGame(currentGame.game().getBoard());
+    }
+  }
+
+  private void leaveGame() throws Exception {
+    if (currentGame != null) {
+      server.leaveGame(currentGame.gameID(), authToken);
+      inGame = false;
+      currentGame = null;
+      playerColor = null;
+    }
+  }
+
+  private void makeMove() throws Exception {
+    if (currentGame == null) return;
+
+    System.out.print("Enter starting position (e.g., e2): ");
+    String start = scanner.nextLine().toLowerCase();
+    System.out.print("Enter ending position (e.g., e4): ");
+    String end = scanner.nextLine().toLowerCase();
+
+    try {
+      ChessMove move = parseMove(start, end);
+      server.makeMove(currentGame.gameID(), authToken, move);
+    } catch (IllegalArgumentException e) {
+      System.out.println("Invalid move format. Use format 'e2 e4'");
+    }
+  }
+
+  private void resignGame() throws Exception {
+    if (currentGame == null) return;
+
+    System.out.print("Are you sure you want to resign? (yes/no): ");
+    String confirm = scanner.nextLine().toLowerCase();
+    if (confirm.equals("yes")) {
+      server.resignGame(currentGame.gameID(), authToken);
+      System.out.println("You have resigned from the game.");
+    }
+  }
+
+  private void highlightMoves() {
+    if (currentGame == null || currentGame.game() == null) return;
+
+    System.out.print("Enter piece position to highlight (e.g., e2): ");
+    String position = scanner.nextLine().toLowerCase();
+
+    try {
+      ChessPosition pos = parsePosition(position);
+      ChessGame game = currentGame.game();
+      Collection<ChessMove> moves = game.validMoves(pos);
+
+      // Display board with highlights
+      ChessBoardUI.displayGameWithHighlights(game.getBoard(), moves);
+    } catch (IllegalArgumentException e) {
+      System.out.println("Invalid position format. Use format 'e2'");
+    }
+  }
+
+  // Helper methods for UI updates from ServerFacade
+  public void updateGameDisplay(ChessGame game) {
+    if (currentGame != null) {
+      currentGame.setGame(game);
+      redrawBoard();
+    }
+  }
+
+  public void displayError(String message) {
+    System.out.println("Error: " + message);
+  }
+
+  public void displayNotification(String message) {
+    System.out.println("Notification: " + message);
+  }
+
+  // Helper methods for parsing chess positions and moves
+  private ChessPosition parsePosition(String pos) {
+    if (pos.length() != 2) throw new IllegalArgumentException("Invalid position format");
+
+    int col = pos.charAt(0) - 'a';
+    int row = Character.getNumericValue(pos.charAt(1)) - 1;
+
+    if (col < 0 || col > 7 || row < 0 || row > 7) {
+      throw new IllegalArgumentException("Position out of bounds");
+    }
+
+    return new ChessPosition(row, col);
+  }
+
+  private ChessMove parseMove(String start, String end) {
+    ChessPosition startPos = parsePosition(start);
+    ChessPosition endPos = parsePosition(end);
+    return new ChessMove(startPos, endPos);
+  }
+}
 
 }

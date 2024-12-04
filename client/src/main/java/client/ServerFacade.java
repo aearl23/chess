@@ -4,7 +4,11 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.UserData;
 import model.GameData;
-
+import chess.Game;
+import client.websocket.WebSocketCommunicator;
+import client.websocket.ServerMessageObserver;
+import websocket.commands.UserGameCommand;
+import websocket.messages.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,9 +18,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 
-public class ServerFacade {
+public class ServerFacade implements ServerMessageObserver{
   private final String serverUrl;
   private final Gson gson;
+
+  private WebSocketCommunicator webSocketCommunicator;
+  private final ChessClient chessClient;
 
   public ServerFacade(int port){
     serverUrl = "http://localhost:" + port;
@@ -153,5 +160,98 @@ public class ServerFacade {
       return "Unknown error occurred";
     }
   }
+
+  public ServerFacade(String url, ChessClient chessClient) {
+    serverUrl = url;
+    gson = new Gson();
+    this.chessClient = chessClient;
+  }
+
+  public ServerFacade(int port, ChessClient chessClient) {
+    serverUrl = "http://localhost:" + port;
+    gson = new Gson();
+    this.chessClient = chessClient;
+  }
+
+  // New WebSocket methods
+  public void connectToGame(int gameID, String authToken) throws Exception {
+    // First establish WebSocket connection
+    String wsUrl = serverUrl.replace("http", "ws") + "/connect";
+    URI uri = new URI(wsUrl);
+    webSocketCommunicator = new WebSocketCommunicator(uri, this);
+    webSocketCommunicator.connectBlocking();
+
+    // Then send CONNECT command
+    UserGameCommand connectCommand = new UserGameCommand();
+    connectCommand.commandType = UserGameCommand.CommandType.CONNECT;
+    connectCommand.gameID = gameID;
+    connectCommand.authToken = authToken;
+    webSocketCommunicator.sendCommand(connectCommand);
+  }
+
+  public void makeMove(int gameID, String authToken, chess.ChessMove move) throws Exception {
+    if (webSocketCommunicator == null) {
+      throw new Exception("Error: Not connected to game");
+    }
+
+    var moveCommand = new MakeMoveCommand();
+    moveCommand.commandType = UserGameCommand.CommandType.MAKE_MOVE;
+    moveCommand.gameID = gameID;
+    moveCommand.authToken = authToken;
+    moveCommand.move = move;
+    webSocketCommunicator.sendCommand(moveCommand);
+  }
+
+  public void leaveGame(int gameID, String authToken) throws Exception {
+    if (webSocketCommunicator == null) {
+      throw new Exception("Error: Not connected to game");
+    }
+
+    var leaveCommand = new UserGameCommand();
+    leaveCommand.commandType = UserGameCommand.CommandType.LEAVE;
+    leaveCommand.gameID = gameID;
+    leaveCommand.authToken = authToken;
+    webSocketCommunicator.sendCommand(leaveCommand);
+
+    // Close WebSocket connection
+    webSocketCommunicator.close();
+    webSocketCommunicator = null;
+  }
+
+  public void resignGame(int gameID, String authToken) throws Exception {
+    if (webSocketCommunicator == null) {
+      throw new Exception("Error: Not connected to game");
+    }
+
+    var resignCommand = new UserGameCommand();
+    resignCommand.commandType = UserGameCommand.CommandType.RESIGN;
+    resignCommand.gameID = gameID;
+    resignCommand.authToken = authToken;
+    webSocketCommunicator.sendCommand(resignCommand);
+  }
+
+  // Implementation of ServerMessageObserver interface
+  @Override
+  public void notify(ServerMessage message) {
+    try {
+      switch (message.serverMessageType) {
+        case LOAD_GAME -> {
+          LoadGameMessage loadMessage = (LoadGameMessage) message;
+          chessClient.updateGameDisplay(loadMessage.game);
+        }
+        case ERROR -> {
+          ErrorMessage errorMessage = (ErrorMessage) message;
+          chessClient.displayError(errorMessage.errorMessage);
+        }
+        case NOTIFICATION -> {
+          NotificationMessage notificationMessage = (NotificationMessage) message;
+          chessClient.displayNotification(notificationMessage.message);
+        }
+      }
+    } catch (Exception e) {
+      chessClient.displayError("Error processing server message: " + e.getMessage());
+    }
+  }
+
 }
 
