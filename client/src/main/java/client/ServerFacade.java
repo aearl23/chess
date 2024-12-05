@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.UserData;
 import model.GameData;
-import chess.Game;
 import websocket.messages.ServerMessage;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
@@ -25,6 +24,7 @@ import java.util.Collection;
 public class ServerFacade implements ServerMessageObserver{
   private final String serverUrl;
   private final Gson gson;
+  private String username;
 
   private WebSocketCommunicator webSocketCommunicator;
   private final ChessClient chessClient;
@@ -55,6 +55,7 @@ public class ServerFacade implements ServerMessageObserver{
     }
 
     var user = new UserData(username, password, email);
+    this.username = username;
     return makeRequest("POST", "/user", user, AuthData.class, null);
   }
 
@@ -66,6 +67,7 @@ public class ServerFacade implements ServerMessageObserver{
       throw new Exception("Error: Password cannot be empty");
     }
     var user = new UserData(username, password, null);
+    this.username = username;
     return makeRequest("POST", "/session", user, AuthData.class, null);
   }
 
@@ -73,6 +75,11 @@ public class ServerFacade implements ServerMessageObserver{
 
   public void logout(String authToken) throws Exception{
     makeRequest("DELETE", "/session", null, null, authToken);
+    this.username = null;
+  }
+
+  public String getUsername() {
+    return username;
   }
 
   public Collection<GameData> listGames(String authToken) throws Exception {
@@ -165,18 +172,6 @@ public class ServerFacade implements ServerMessageObserver{
       }
       return "Unknown error occurred";
     }
-  }
-
-  public ServerFacade(String url, ChessClient chessClient) {
-    serverUrl = url;
-    gson = new Gson();
-    this.chessClient = chessClient;
-  }
-
-  public ServerFacade(int port, ChessClient chessClient) {
-    serverUrl = "http://localhost:" + port;
-    gson = new Gson();
-    this.chessClient = chessClient;
   }
 
   // New WebSocket methods

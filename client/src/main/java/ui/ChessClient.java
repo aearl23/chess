@@ -3,6 +3,7 @@ package ui;
 import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
@@ -269,15 +270,35 @@ public class ChessClient {
     // Display board in both orientations
     ChessGame chessGame;
     if (game.game() == null) {
-      ChessGame newGame=new ChessGame();
+      chessGame = new ChessGame();
       ChessBoard board=new ChessBoard();
       board.resetBoard();
-      newGame.setBoard(board);
-      ChessBoardUI.displayGame(board);
+      chessGame.setBoard(board);
+      game.setGame(chessGame);
     } else {
-      ChessBoardUI.displayGame(game.game().getBoard());
+      chessGame = game.game();
     }
+
+    determinePerspective(game);
+
+    ChessBoardUI.displayGame(chessGame.getBoard(), getPerspective());
     startGameplay(game);
+  }
+
+  private void determinePerspective(GameData game) {
+    String username = server.getUsername(); // You'll need to add this method to ServerFacade
+    if (username.equals(game.whiteUsername())) {
+      playerColor = ChessGame.TeamColor.WHITE;
+    } else if (username.equals(game.blackUsername())) {
+      playerColor = ChessGame.TeamColor.BLACK;
+    } else {
+      playerColor = null; // Observer
+    }
+  }
+
+  private ChessGame.TeamColor getPerspective() {
+    // Observers see from white's perspective, players see from their color's perspective
+    return playerColor != null ? playerColor : ChessGame.TeamColor.WHITE;
   }
 
 
@@ -342,21 +363,23 @@ public class ChessClient {
 
   private void redrawBoard() {
     if (currentGame != null && currentGame.game() != null) {
-      ChessBoardUI.displayGame(currentGame.game().getBoard());
-    }
-  }
-
-  private void leaveGame() throws Exception {
-    if (currentGame != null) {
-      server.leaveGame(currentGame.gameID(), authToken);
-      inGame = false;
-      currentGame = null;
-      playerColor = null;
+      ChessBoardUI.displayGame(currentGame.game().getBoard(), getPerspective());
     }
   }
 
   private void makeMove() throws Exception {
     if (currentGame == null) return;
+
+    // Verify it's the player's turn
+    if (playerColor == null) {
+      System.out.println("Observers cannot make moves");
+      return;
+    }
+
+    if (currentGame.game().getTeamTurn() != playerColor) {
+      System.out.println("It's not your turn");
+      return;
+    }
 
     System.out.print("Enter starting position (e.g., e2): ");
     String start = scanner.nextLine().toLowerCase();
@@ -365,20 +388,16 @@ public class ChessClient {
 
     try {
       ChessMove move = parseMove(start, end);
+      // Verify the piece belongs to the player
+      ChessPiece piece = currentGame.game().getBoard().getPiece(move.getStartPosition());
+      if (piece == null || piece.getTeamColor() != playerColor) {
+        System.out.println("You can only move your own pieces");
+        return;
+      }
+
       server.makeMove(currentGame.gameID(), authToken, move);
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid move format. Use format 'e2 e4'");
-    }
-  }
-
-  private void resignGame() throws Exception {
-    if (currentGame == null) return;
-
-    System.out.print("Are you sure you want to resign? (yes/no): ");
-    String confirm = scanner.nextLine().toLowerCase();
-    if (confirm.equals("yes")) {
-      server.resignGame(currentGame.gameID(), authToken);
-      System.out.println("You have resigned from the game.");
     }
   }
 
@@ -393,18 +412,51 @@ public class ChessClient {
       ChessGame game = currentGame.game();
       Collection<ChessMove> moves = game.validMoves(pos);
 
-      // Display board with highlights
-      ChessBoardUI.displayGameWithHighlights(game.getBoard(), moves);
+      if (moves.isEmpty()) {
+        System.out.println("No legal moves for this piece");
+        return;
+      }
+
+      // Display board with highlights from correct perspective
+      ChessBoardUI.displayGameWithHighlights(game.getBoard(), moves, getPerspective());
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid position format. Use format 'e2'");
     }
   }
 
-  // Helper methods for UI updates from ServerFacade
   public void updateGameDisplay(ChessGame game) {
     if (currentGame != null) {
       currentGame.setGame(game);
+      System.out.println("\nBoard updated:"); // Add notification of update
       redrawBoard();
+    }
+  }
+
+  private void resignGame() throws Exception {
+    if (currentGame == null) return;
+
+    if (playerColor == null) {
+      System.out.println("Observers cannot resign");
+      return;
+    }
+
+    System.out.print("Are you sure you want to resign? (yes/no): ");
+    String confirm = scanner.nextLine().toLowerCase();
+    if (confirm.equals("yes")) {
+      server.resignGame(currentGame.gameID(), authToken);
+      System.out.println("You have resigned from the game.");
+      // Don't leave the game, just mark it as over
+    }
+  }
+
+  private void leaveGame() throws Exception {
+    if (currentGame != null) {
+      server.leaveGame(currentGame.gameID(), authToken);
+      inGame = false;
+      currentGame = null;
+      playerColor = null;
+      // Return to post-login UI
+      postloginUI();
     }
   }
 

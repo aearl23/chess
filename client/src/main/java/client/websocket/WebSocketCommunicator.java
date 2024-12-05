@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import websocket.messages.ServerMessage;
 import websocket.commands.UserGameCommand;
 
+import java.net.URI;
+
+
 public class WebSocketCommunicator extends WebSocketClient {
   private final ServerMessageObserver observer;
   private final Gson gson;
