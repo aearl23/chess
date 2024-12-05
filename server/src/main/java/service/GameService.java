@@ -66,7 +66,7 @@ public class GameService {
     return game;
   }
 
-  public void makeMove(int gameID, String authToken, ChessMove move) throws DataAccessException {
+  public void makeMove(int gameID, String authToken, ChessMove move) throws DataAccessException, InvalidMoveException{
     // Verify auth and get game
     AuthData auth = dataAccess.getAuth(authToken);
     if (auth == null) {

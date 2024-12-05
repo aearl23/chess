@@ -5,6 +5,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import dataaccess.MySqlDataAccess;
+import server.websocket.WebSocketHandler;
 import model.*;
 import service.*;
 import spark.*;
@@ -16,6 +17,7 @@ public class Server {
     private final UserService userService;
     private final GameService gameService;
     private final AdminService adminService;
+    private final WebSocketHandler webSocketHandler;
 
     private final Gson gson;
 
@@ -29,6 +31,7 @@ public class Server {
             this.userService = new UserService(dataAccess);
             this.gameService = new GameService(dataAccess);
             this.adminService = new AdminService(dataAccess);
+            this.webSocketHandler = new WebSocketHandler(gameService);
             this.gson = new Gson();
         } catch (DataAccessException e) {
             System.err.println("Failed to initialize database: " + e.getMessage());
@@ -58,8 +61,7 @@ public class Server {
         Spark.get("/game", listGamesHandler);
         Spark.post("/game", createGameHandler);
 
-        //This line initializes the server and can be removed once you have a functioning endpoint
-
+        Spark.webSocket("/ws", webSocketHandler);
         //Add endpoints here
 
         Spark.exception(Exception.class, (e, req, res) -> {
@@ -72,7 +74,14 @@ public class Server {
     }
 
     public void stop() {
-
+        // Close all active WebSocket sessions
+        for (Session session : webSocketHandler.getSessions()) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                System.err.println("Error closing WebSocket session: " + e.getMessage());
+            }
+        }
         Spark.stop();
     }
 

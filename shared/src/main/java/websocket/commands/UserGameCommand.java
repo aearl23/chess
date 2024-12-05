@@ -10,11 +10,11 @@ import java.util.Objects;
  */
 public class UserGameCommand {
 
-    private final CommandType commandType;
+    public CommandType commandType;
 
-    private final String authToken;
+    public String authToken;
 
-    private final Integer gameID;
+    public Integer gameID;
 
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;

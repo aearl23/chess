@@ -10,6 +10,7 @@ import websocket.commands.MakeMoveCommand;
 import websocket.messages.*;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
@@ -18,20 +19,28 @@ public class WebSocketHandler {
   private final Map<Session, Integer> sessionToGame = new ConcurrentHashMap<>();
   private final GameService gameService;
   private final Gson gson;
+  private final Set<Session> sessions = ConcurrentHashMap.newKeySet();
+
 
   public WebSocketHandler(GameService gameService) {
     this.gameService = gameService;
     this.gson = new Gson();
   }
 
+  public Set<Session> getSessions() {
+    return sessions;
+  }
+
   @OnWebSocketConnect
   public void onConnect(Session session) {
     // Just store the session - we'll associate it with a game when we receive the CONNECT command
+    sessions.add(session);
     sessionToGame.put(session, null);
   }
 
   @OnWebSocketClose
   public void onClose(Session session, int statusCode, String reason) {
+    sessions.remove(session);
     Integer gameId = sessionToGame.get(session);
     if (gameId != null) {
       // Notify other players in the game that this player left
@@ -46,7 +55,7 @@ public class WebSocketHandler {
     try {
       UserGameCommand command = gson.fromJson(message, UserGameCommand.class);
 
-      switch (command.commandType) {
+      switch (command.getCommandType()) {
         case CONNECT:
           handleConnect(session, command);
           break;
@@ -70,7 +79,7 @@ public class WebSocketHandler {
   private void handleConnect(Session session, UserGameCommand command) {
     try {
       // Validate game exists
-      Game game = gameService.getGame(command.gameID);
+      Game game = gameService.getGame(command.getGameID());
       if (game == null) {
         sendError(session, "Game not found");
         return;
@@ -163,4 +172,7 @@ public class WebSocketHandler {
       }
     }
   }
+
+
+
 }

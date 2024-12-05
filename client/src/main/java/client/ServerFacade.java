@@ -29,13 +29,15 @@ public class ServerFacade implements ServerMessageObserver{
   private WebSocketCommunicator webSocketCommunicator;
   private final ChessClient chessClient;
 
-  public ServerFacade(int port){
+  public ServerFacade(int port, ChessClient chessClient){
     serverUrl = "http://localhost:" + port;
+    this.chessClient=chessClient;
     gson = new Gson();
   }
 
-  public ServerFacade(String url) {
+  public ServerFacade(String url, ChessClient chessClient) {
     serverUrl = url;
+    this.chessClient=chessClient;
     gson = new Gson();
 
   }
@@ -238,18 +240,18 @@ public class ServerFacade implements ServerMessageObserver{
   @Override
   public void notify(ServerMessage message) {
     try {
-      switch (message.serverMessageType) {
+      switch (message.getServerMessageType()) {
         case LOAD_GAME -> {
           LoadGameMessage loadMessage = (LoadGameMessage) message;
-          chessClient.updateGameDisplay(loadMessage.game);
+          chessClient.updateGameDisplay(loadMessage.getGame());
         }
         case ERROR -> {
           ErrorMessage errorMessage = (ErrorMessage) message;
-          chessClient.displayError(errorMessage.errorMessage);
+          chessClient.displayError(errorMessage.getErrorMessage());
         }
         case NOTIFICATION -> {
           NotificationMessage notificationMessage = (NotificationMessage) message;
-          chessClient.displayNotification(notificationMessage.message);
+          chessClient.displayNotification(notificationMessage.getMessage());
         }
       }
     } catch (Exception e) {
