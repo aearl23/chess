@@ -8,13 +8,11 @@ import chess.ChessPosition;
 import model.AuthData;
 import model.GameData;
 import client.ServerFacade;
-import model.UserData;
-
+import client.websocket.ServerMessageObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collection;
-import client.ServerFacade;
 
 public class ChessClient {
   private final ServerFacade server;
@@ -26,7 +24,7 @@ public class ChessClient {
   private boolean inGame = false;
 
   public ChessClient(String serverUrl) {
-    server=new ServerFacade(serverUrl);
+    server=new ServerFacade(serverUrl, this);
     scanner=new Scanner(System.in);
   }
 
@@ -274,7 +272,6 @@ public class ChessClient {
       ChessBoard board=new ChessBoard();
       board.resetBoard();
       chessGame.setBoard(board);
-      game.setGame(chessGame);
     } else {
       chessGame = game.game();
     }
@@ -426,7 +423,13 @@ public class ChessClient {
 
   public void updateGameDisplay(ChessGame game) {
     if (currentGame != null) {
-      currentGame.setGame(game);
+      currentGame = new GameData(
+              currentGame.gameID(),
+              currentGame.whiteUsername(),
+              currentGame.blackUsername(),
+              currentGame.gameName(),
+              game
+      );
       System.out.println("\nBoard updated:"); // Add notification of update
       redrawBoard();
     }
@@ -485,8 +488,32 @@ public class ChessClient {
   private ChessMove parseMove(String start, String end) {
     ChessPosition startPos = parsePosition(start);
     ChessPosition endPos = parsePosition(end);
-    return new ChessMove(startPos, endPos);
-  }
-}
 
+    // Check if this might be a pawn promotion move
+    ChessPiece piece = currentGame.game().getBoard().getPiece(startPos);
+    if (piece != null && piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+      // Check if pawn is moving to the last rank
+      int lastRank = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? 7 : 0;
+      if (endPos.getRow() == lastRank) {
+        // Ask for promotion piece
+        ChessPiece.PieceType promotionPiece = getPromotionPieceFromUser();
+        return new ChessMove(startPos, endPos, promotionPiece);
+      }
+    }
+    return new ChessMove(startPos, endPos, null);
+  }
+
+  private ChessPiece.PieceType getPromotionPieceFromUser() {
+    while (true) {
+      System.out.println("Promote pawn to (Q)ueen, (R)ook, (B)ishop, or k(N)ight? ");
+      String input = scanner.nextLine().toUpperCase();
+      return switch (input) {
+        case "Q" -> ChessPiece.PieceType.QUEEN;
+        case "R" -> ChessPiece.PieceType.ROOK;
+        case "B" -> ChessPiece.PieceType.BISHOP;
+        case "N" -> ChessPiece.PieceType.KNIGHT;
+        default -> throw new IllegalStateException("Unexpected value: " + input);
+      };
+    }
+}
 }

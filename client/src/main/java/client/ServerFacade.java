@@ -29,11 +29,11 @@ public class ServerFacade implements ServerMessageObserver{
   private WebSocketCommunicator webSocketCommunicator;
   private final ChessClient chessClient;
 
-  public ServerFacade(int port, ChessClient chessClient){
-    serverUrl = "http://localhost:" + port;
-    this.chessClient=chessClient;
-    gson = new Gson();
-  }
+//  public ServerFacade(int port, ChessClient chessClient){
+//    serverUrl = "http://localhost:" + port;
+//    this.chessClient=chessClient;
+//    gson = new Gson();
+//  }
 
   public ServerFacade(String url, ChessClient chessClient) {
     serverUrl = url;
@@ -191,16 +191,11 @@ public class ServerFacade implements ServerMessageObserver{
   }
 
   public void makeMove(int gameID, String authToken, chess.ChessMove move) throws Exception {
-    if (webSocketCommunicator == null) {
-      throw new Exception("Error: Not connected to game");
-    }
-
-    var moveCommand = new MakeMoveCommand();
-    moveCommand.commandType = UserGameCommand.CommandType.MAKE_MOVE;
-    moveCommand.gameID = gameID;
-    moveCommand.authToken = authToken;
-    moveCommand.move = move;
-    webSocketCommunicator.sendCommand(moveCommand);
+      if (webSocketCommunicator == null) {
+        throw new Exception("Error: Not connected to game");
+      }
+      var moveCommand = new MakeMoveCommand(authToken, gameID, move);
+      webSocketCommunicator.sendCommand(moveCommand);
   }
 
   public void leaveGame(int gameID, String authToken) throws Exception {
@@ -208,10 +203,12 @@ public class ServerFacade implements ServerMessageObserver{
       throw new Exception("Error: Not connected to game");
     }
 
-    var leaveCommand = new UserGameCommand();
-    leaveCommand.commandType = UserGameCommand.CommandType.LEAVE;
-    leaveCommand.gameID = gameID;
-    leaveCommand.authToken = authToken;
+    var leaveCommand = new UserGameCommand(
+      UserGameCommand.CommandType.LEAVE,
+      authToken,
+      gameID
+    );
+
     webSocketCommunicator.sendCommand(leaveCommand);
 
     // Close WebSocket connection
@@ -224,10 +221,11 @@ public class ServerFacade implements ServerMessageObserver{
       throw new Exception("Error: Not connected to game");
     }
 
-    var resignCommand = new UserGameCommand();
-    resignCommand.commandType = UserGameCommand.CommandType.RESIGN;
-    resignCommand.gameID = gameID;
-    resignCommand.authToken = authToken;
+    var resignCommand = new UserGameCommand(
+            UserGameCommand.CommandType.RESIGN,
+            authToken,
+            gameID
+    );
     webSocketCommunicator.sendCommand(resignCommand);
   }
 
