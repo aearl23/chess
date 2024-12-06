@@ -183,12 +183,13 @@ public class ServerFacade implements ServerMessageObserver{
     webSocketCommunicator.connectBlocking();
 
     // Then send CONNECT command
-    UserGameCommand connectCommand = new UserGameCommand();
-    connectCommand.commandType = UserGameCommand.CommandType.CONNECT;
-    connectCommand.gameID = gameID;
-    connectCommand.authToken = authToken;
-    webSocketCommunicator.sendCommand(connectCommand);
-  }
+    var connectCommand = new UserGameCommand(
+        UserGameCommand.CommandType.CONNECT,
+        authToken,
+        gameID
+    );
+      webSocketCommunicator.sendCommand(connectCommand);
+}
 
   public void makeMove(int gameID, String authToken, chess.ChessMove move) throws Exception {
       if (webSocketCommunicator == null) {

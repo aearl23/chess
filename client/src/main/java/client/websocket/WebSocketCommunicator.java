@@ -14,7 +14,7 @@ public class WebSocketCommunicator extends WebSocketClient {
   private final Gson gson;
 
   public WebSocketCommunicator(URI serverURI, ServerMessageObserver observer) {
-    super(serverURI);
+    super();
     this.observer = observer;
     this.gson = new Gson();
   }
@@ -49,6 +49,8 @@ public class WebSocketCommunicator extends WebSocketClient {
   public void sendCommand(UserGameCommand command) {
     String jsonCommand = gson.toJson(command);
     send(jsonCommand);
+  }
+
   }
 
   // Implementation of connectBlocking with timeout
