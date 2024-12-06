@@ -1,32 +1,34 @@
 package client.websocket;
 
 import com.google.gson.Gson;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 import websocket.messages.ServerMessage;
 import websocket.commands.UserGameCommand;
-
+import javax.websocket.*;
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
-public class WebSocketCommunicator extends WebSocketClient {
+@ClientEndpoint
+public class WebSocketCommunicator {
   private final ServerMessageObserver observer;
   private final Gson gson;
+  private Session session = null;
+  private static final long TIMEOUT_MS = 10000; // 10 seconds
 
-  public WebSocketCommunicator(URI serverURI, ServerMessageObserver observer) {
-    super();
+  public WebSocketCommunicator(URI serverURI, ServerMessageObserver observer) throws Exception {
     this.observer = observer;
     this.gson = new Gson();
+    WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+    container.connectToServer(this, serverURI);
   }
 
-  @Override
-  public void onOpen(ServerHandshake handshake) {
+  @OnOpen
+  public void onOpen(Session session) {
+    this.session = session;
     // Connection opened successfully
   }
 
-  @Override
-  public void onMessage(String message) {
-    // Deserialize and handle incoming server message
+  @OnMessage
+  public void onMessage(String message, Session session) {
     try {
       ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
       observer.notify(serverMessage);
@@ -35,51 +37,49 @@ public class WebSocketCommunicator extends WebSocketClient {
     }
   }
 
-  @Override
-  public void onClose(int code, String reason, boolean remote) {
+  @OnClose
+  public void onClose(Session session, CloseReason reason) {
+    this.session = null;
     // Connection closed
   }
 
-  @Override
-  public void onError(Exception ex) {
-    // Handle error
-    System.err.println("WebSocket error: " + ex.getMessage());
+  @OnError
+  public void onError(Session session, Throwable throwable) {
+    System.err.println("WebSocket error: " + throwable.getMessage());
   }
 
-  public void sendCommand(UserGameCommand command) {
-    String jsonCommand = gson.toJson(command);
-    send(jsonCommand);
-  }
-
-  }
-
-  // Implementation of connectBlocking with timeout
-  public boolean connectBlocking() throws InterruptedException {
-    // Try to connect with timeout
-    boolean connected = super.connectBlocking(CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    if (!connected) {
-      throw new InterruptedException("Failed to connect to server within " + CONNECTION_TIMEOUT_SECONDS + " seconds");
+  public void sendCommand(UserGameCommand command) throws IOException {
+    if (session != null) {
+      String jsonCommand = gson.toJson(command);
+      session.getBasicRemote().sendText(jsonCommand);
     }
-    return connected;
   }
 
-  // Implementation of close with proper cleanup
-  @Override
+  public boolean connectBlocking() throws Exception {
+    long startTime = System.currentTimeMillis();
+    while (session == null && System.currentTimeMillis() - startTime < TIMEOUT_MS) {
+      Thread.sleep(100);
+    }
+    return session != null;
+  }
+
   public void close() {
-    try {
-      // Close the connection with normal closure status
-      super.close();
-    } catch (Exception e) {
-      System.err.println("Error during WebSocket closure: " + e.getMessage());
+    if (session != null) {
+      try {
+        session.close();
+      } catch (IOException e) {
+        System.err.println("Error during WebSocket closure: " + e.getMessage());
+      }
     }
   }
 
-  // Additional close method with custom code and reason
   public void close(int code, String reason) {
-    try {
-      super.close(code, reason);
-    } catch (Exception e) {
-      System.err.println("Error during WebSocket closure: " + e.getMessage());
+    if (session != null) {
+      try {
+        session.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason));
+      } catch (IOException e) {
+        System.err.println("Error during WebSocket closure: " + e.getMessage());
+      }
     }
   }
 }

@@ -29,17 +29,17 @@ public class ServerFacade implements ServerMessageObserver{
   private WebSocketCommunicator webSocketCommunicator;
   private final ChessClient chessClient;
 
-//  public ServerFacade(int port, ChessClient chessClient){
-//    serverUrl = "http://localhost:" + port;
-//    this.chessClient=chessClient;
-//    gson = new Gson();
-//  }
 
   public ServerFacade(String url, ChessClient chessClient) {
     serverUrl = url;
     this.chessClient=chessClient;
     gson = new Gson();
+  }
 
+  public ServerFacade(int port){
+    serverUrl = "http://localhost:" + port;
+    gson = new Gson();
+    this.chessClient = null;
   }
   //Pre-login operations: Help, quit, login, register
 
