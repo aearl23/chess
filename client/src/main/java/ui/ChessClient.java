@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collection;
+import websocket.messages.*;
 
 public class ChessClient {
   private final ServerFacade server;
@@ -421,15 +422,9 @@ public class ChessClient {
     }
   }
 
-  public void updateGameDisplay(ChessGame game) {
+  public void updateGameDisplay(GameData game) {
     if (currentGame != null) {
-      currentGame = new GameData(
-              currentGame.gameID(),
-              currentGame.whiteUsername(),
-              currentGame.blackUsername(),
-              currentGame.gameName(),
-              game
-      );
+      currentGame = game;
       System.out.println("\nBoard updated:"); // Add notification of update
       redrawBoard();
     }
@@ -462,6 +457,25 @@ public class ChessClient {
       postloginUI();
     }
   }
+
+  //handle websocket notifications to be shows on display
+  public void handleMessage(ServerMessage message) {
+    switch (message.getServerMessageType()) {
+      case NOTIFICATION -> {
+        NotificationMessage notification = (NotificationMessage) message;
+        displayNotification(notification.getMessage());
+      }
+      case ERROR -> {
+        ErrorMessage error = (ErrorMessage) message;
+        displayError(error.getErrorMessage());
+      }
+      case LOAD_GAME -> {
+        LoadGameMessage loadGame = (LoadGameMessage) message;
+        updateGameDisplay(loadGame.getGame());
+      }
+    }
+  }
+
 
   public void displayError(String message) {
     System.out.println("Error: " + message);

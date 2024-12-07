@@ -8,7 +8,7 @@ import java.net.URI;
 import java.io.IOException;
 
 @ClientEndpoint
-public class WebSocketCommunicator {
+public class WebSocketCommunicator extends Endpoint{
   private final ServerMessageObserver observer;
   private final Gson gson;
   private Session session = null;
