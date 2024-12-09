@@ -45,7 +45,7 @@ public class GameService {
       }
 
       if (playerColor == null || playerColor.isEmpty()) {
-        return;
+        throw new BadRequestException("Error: player color is required");
       }
 
       GameData updatedGame;
