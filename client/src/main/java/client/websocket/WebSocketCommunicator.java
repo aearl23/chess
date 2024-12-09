@@ -80,9 +80,9 @@ public class WebSocketCommunicator {
     }
 
     UserGameCommand moveCommand = new UserGameCommand(
-            UserGameCommand.CommandType.MAKE_MOVE,
             authToken,
-            currentGameId
+            currentGameId,
+            move
     );
     sendCommand(moveCommand);
   }
