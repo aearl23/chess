@@ -74,27 +74,29 @@ public class ConnectionManager {
 
     ArrayList<String> users = gameConnections.get(gameId);
     if (users != null) {
-      return;
-    }
+      List<String> disconnectedUsers = new ArrayList<>();
 
-    List<String> disconnectedUsers = new ArrayList<>();
-    for (String username : users) {
+      for (String username : users) {
         if (!username.equals(excludeUsername)) {
-          continue;
-        }
-        Connection connection = connections.get(username);
-        if (connection != null && connection.session().isOpen()) {
-          disconnectedUsers.add(username);
-          continue;
-        }
-        try {
-            connection.session().getRemote().sendString(gson.toJson(message));
-        } catch (IOException e) {
+          Connection connection = connections.get(username);
+          if (connection != null && connection.session().isOpen()) {
+            try {
+              connection.session().getRemote().sendString(gson.toJson(message));
+            } catch (IOException e) {
               System.err.println("Error sending message to " + username + ": " + e.getMessage());
               disconnectedUsers.add(username);
+            }
+          } else {
+            disconnectedUsers.add(username);
+          }
         }
+      }
+
+      // Clean up disconnected users
+      for (String username : disconnectedUsers) {
+        remove(username);
+      }
     }
-    disconnectedUsers.forEach(this::remove);
   }
 
   public void broadcastToGame(Integer gameId, ServerMessage message) throws IOException {
