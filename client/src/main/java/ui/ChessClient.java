@@ -5,14 +5,19 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import client.websocket.WebSocketCommunicator;
 import model.AuthData;
 import model.GameData;
 import client.ServerFacade;
 import client.websocket.ServerMessageObserver;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collection;
+
+import server.websocket.WebSocketHandler;
 import websocket.messages.*;
 
 public class ChessClient {
@@ -23,10 +28,13 @@ public class ChessClient {
   private GameData currentGame = null;
   private ChessGame.TeamColor playerColor = null;
   private boolean inGame = false;
+  private WebSocketCommunicator webSocket;
+  private final String serverUrl;
 
   public ChessClient(String serverUrl) {
-    server=new ServerFacade(serverUrl, this);
-    scanner=new Scanner(System.in);
+    this.server=new ServerFacade(serverUrl, this);
+    this.scanner=new Scanner(System.in);
+    this.serverUrl= serverUrl;
   }
 
   public void run() {
@@ -167,6 +175,10 @@ public class ChessClient {
   }
 
   private void logout() throws Exception {
+    if (webSocket != null) {
+      webSocket.close();
+      webSocket = null;
+    }
     server.logout(authToken);
     System.out.println("Logged out successfully");
     authToken=null;
@@ -303,11 +315,25 @@ public class ChessClient {
   private void startGameplay(GameData game) {
     try {
       // Connect to WebSocket
-      server.connectToGame(game.gameID(), authToken);
-      inGame = true;
+      // Create WebSocket connection
+      URI uri = new URI("ws://" + serverUrl + "/connect");
+      webSocket = new WebSocketCommunicator(uri, new ServerMessageObserver() {
+        @Override
+        public void notify(ServerMessage message) {
+          handleMessage(message);
+        }
+      });
+      // Connect to WebSocket
+      if (webSocket.connectBlocking()) {
 
-      // Start gameplay loop
-      gameplayUI();
+        webSocket.connectToGame(game.gameID(), authToken);
+        inGame = true;
+
+        // Start gameplay loop
+        gameplayUI();
+      } else {
+        throw new Exception("Failed to connect to game server");
+      }
     } catch (Exception e) {
       System.out.println("Error connecting to game: " + e.getMessage());
     }
@@ -393,7 +419,7 @@ public class ChessClient {
         return;
       }
 
-      server.makeMove(currentGame.gameID(), authToken, move);
+      webSocket.sendMove(move);
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid move format. Use format 'e2 e4'");
     }
@@ -441,7 +467,7 @@ public class ChessClient {
     System.out.print("Are you sure you want to resign? (yes/no): ");
     String confirm = scanner.nextLine().toLowerCase();
     if (confirm.equals("yes")) {
-      server.resignGame(currentGame.gameID(), authToken);
+      webSocket.resignGame();
       System.out.println("You have resigned from the game.");
       // Don't leave the game, just mark it as over
     }
@@ -449,7 +475,11 @@ public class ChessClient {
 
   private void leaveGame() throws Exception {
     if (currentGame != null) {
-      server.leaveGame(currentGame.gameID(), authToken);
+      if (webSocket != null) {
+          webSocket.leaveGame();
+          webSocket.close();
+          webSocket = null;
+      }
       inGame = false;
       currentGame = null;
       playerColor = null;
