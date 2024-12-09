@@ -45,20 +45,6 @@ public class WebSocketCommunicator {
     }
   }
 
-  @OnClose
-  public void onClose(Session session, CloseReason reason) {
-    this.session = null;
-    this.currentGameId = null;
-    this.authToken = null;
-  }
-
-  @OnError
-  public void onError(Session session, Throwable throwable) {
-    System.err.println("WebSocket error: " + throwable.getMessage());
-    // Notify observer of error
-    observer.notify(new ErrorMessage("WebSocket error: " + throwable.getMessage()));
-  }
-
   // Connect to a specific game
   public void connectToGame(Integer gameId, String authToken) throws IOException {
     this.currentGameId = gameId;

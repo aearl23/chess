@@ -327,18 +327,15 @@ public class WebSocketHandler {
 
 
   class ContextProvider {
-    private static final ThreadLocal<Session> currentSession = new ThreadLocal<>();
+    private static final ThreadLocal<Session> CURRENT_SESSION = new ThreadLocal<>();
 
     public static void setCurrentSession(Session session) {
-      currentSession.set(session);
+      CURRENT_SESSION.set(session);
     }
 
     public static Session getCurrentSession() {
-      return currentSession.get();
+      return CURRENT_SESSION.get();
     }
 
-    public static void clearCurrentSession() {
-      currentSession.remove();
-    }
   }
 }

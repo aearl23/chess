@@ -76,7 +76,6 @@ public class ChessClient {
               register - Create a new account
             """);
   }
-
   private void displayHelp() {
     System.out.println("""
             Available commands:
@@ -86,31 +85,22 @@ public class ChessClient {
               register - Create a new account
             """);
   }
-
   private void login() throws Exception {
     System.out.print("Username: ");
     String username=scanner.nextLine();
-
     System.out.print("Password: ");
     String password=scanner.nextLine();
-
-    // Call server to login
     AuthData result=server.login(username, password);
     authToken=result.authToken();
     System.out.println("Logged in as " + result.username());
   }
-
   private void register() throws Exception {
     System.out.print("Username: ");
     String username=scanner.nextLine();
-
     System.out.print("Password: ");
     String password=scanner.nextLine();
-
     System.out.print("Email: ");
     String email=scanner.nextLine();
-
-    // Call server to register
     AuthData result=server.register(username, password, email);
     authToken=result.authToken();
     System.out.println("Registered and logged in as " + result.username());
@@ -140,12 +130,10 @@ public class ChessClient {
         System.out.println("Error: " + e.getMessage());
       }
     }
-
     if (authToken == null) {
       preloginUI(); // Return to prelogin UI after logout
     }
   }
-
   private void displayPostloginMenu() {
     System.out.println("""
                             
@@ -158,7 +146,6 @@ public class ChessClient {
               observe - Observe an existing chess game
             """);
   }
-
   private void displayPostloginHelp() {
     System.out.println("""
             Available commands:
@@ -170,7 +157,6 @@ public class ChessClient {
               observe - Observe an existing chess game
             """);
   }
-
   private void logout() throws Exception {
     if (webSocket != null) {
       webSocket.close();
@@ -180,7 +166,6 @@ public class ChessClient {
     System.out.println("Logged out successfully");
     authToken=null;
   }
-
   private void createGame() throws Exception {
     System.out.print("Enter name for new game: ");
     String gameName=scanner.nextLine();
@@ -190,7 +175,6 @@ public class ChessClient {
 
     displayGame(game);
   }
-
   private void listGames() throws Exception {
     gamesList=new ArrayList<>(server.listGames(authToken));
 
@@ -205,7 +189,6 @@ public class ChessClient {
       System.out.printf("%d. %s%n", (i + 1), formatGameInfo(game));
     }
   }
-
   private String formatGameInfo(GameData game) {
     StringBuilder info=new StringBuilder(game.gameName());
     info.append(" (");
@@ -227,43 +210,33 @@ public class ChessClient {
       System.out.println("Please list games first using 'list' command");
       return;
     }
-
     System.out.print("Enter game number (1-" + gamesList.size() + "): ");
     int gameNumber=Integer.parseInt(scanner.nextLine());
-
     if (gameNumber < 1 || gameNumber > gamesList.size()) {
       throw new IllegalArgumentException("Invalid game number");
     }
-
     System.out.print("Enter color to play (WHITE/BLACK): ");
     String color=scanner.nextLine().toUpperCase();
     if (!color.equals("WHITE") && !color.equals("BLACK")) {
       throw new IllegalArgumentException("Invalid color. Must be WHITE or BLACK");
     }
-
     GameData selectedGame=gamesList.get(gameNumber - 1);
     server.joinGame(color, selectedGame.gameID(), authToken);
-
-    // Display the chess board
     displayGame(selectedGame);
   }
-
   private void observeGame() {
     if (gamesList.isEmpty()) {
       System.out.println("Please list games first using 'list' command");
       return;
     }
-
     System.out.print("Enter game number (1-" + gamesList.size() + "): ");
     int gameNumber = Integer.parseInt(scanner.nextLine());
     if (gameNumber < 1 || gameNumber > gamesList.size()) {
       throw new IllegalArgumentException("Invalid game number");
     }
-
     GameData selectedGame = gamesList.get(gameNumber - 1);
     displayGame(selectedGame);  // Display the game's current state
   }
-
   private void displayGame(GameData game) {
     currentGame = game;
     System.out.println("\nGame: " + game.gameName());
@@ -274,8 +247,6 @@ public class ChessClient {
       System.out.println("Black: " + game.blackUsername());
     }
     System.out.println();
-
-    // Display board in both orientations
     ChessGame chessGame;
     if (game.game() == null) {
       chessGame = new ChessGame();
@@ -285,13 +256,10 @@ public class ChessClient {
     } else {
       chessGame = game.game();
     }
-
     determinePerspective(game);
-
     ChessBoardUI.displayGame(chessGame.getBoard(), getPerspective());
     startGameplay(game);
   }
-
   private void determinePerspective(GameData game) {
     String username = server.getUsername(); // You'll need to add this method to ServerFacade
     if (username.equals(game.whiteUsername())) {
@@ -302,17 +270,12 @@ public class ChessClient {
       playerColor = null; // Observer
     }
   }
-
   private ChessGame.TeamColor getPerspective() {
     // Observers see from white's perspective, players see from their color's perspective
     return playerColor != null ? playerColor : ChessGame.TeamColor.WHITE;
   }
-
-
   private void startGameplay(GameData game) {
     try {
-      // Connect to WebSocket
-      // Create WebSocket connection
       URI uri = new URI("ws://" + serverUrl + "/connect");
       webSocket = new WebSocketCommunicator(uri, new ServerMessageObserver() {
         @Override
@@ -320,13 +283,9 @@ public class ChessClient {
           handleMessage(message);
         }
       });
-      // Connect to WebSocket
       if (webSocket.connectBlocking()) {
-
         webSocket.connectToGame(game.gameID(), authToken);
         inGame = true;
-
-        // Start gameplay loop
         gameplayUI();
       } else {
         throw new Exception("Failed to connect to game server");
@@ -335,12 +294,10 @@ public class ChessClient {
       System.out.println("Error connecting to game: " + e.getMessage());
     }
   }
-
   private void gameplayUI() {
     while (inGame) {
       displayGameplayMenu();
       String command = scanner.nextLine().toLowerCase();
-
       try {
         switch (command) {
           case "help" -> displayGameplayHelp();
@@ -356,10 +313,8 @@ public class ChessClient {
       }
     }
   }
-
   private void displayGameplayMenu() {
     System.out.println("""
-                
                 Game Commands:
                   help - Display available commands
                   redraw - Redraw the chess board
@@ -369,7 +324,6 @@ public class ChessClient {
                   highlight - Show legal moves for a piece
                 """);
   }
-
   private void displayGameplayHelp() {
     System.out.println("""
                 Available game commands:
@@ -381,7 +335,6 @@ public class ChessClient {
                   highlight - Show legal moves for a selected piece
                 """);
   }
-
   private void redrawBoard() {
     if (currentGame != null && currentGame.game() != null) {
       ChessBoardUI.displayGame(currentGame.game().getBoard(), getPerspective());
@@ -389,33 +342,26 @@ public class ChessClient {
   }
 
   private void makeMove() throws Exception {
-    if (currentGame == null) return;
-
-    // Verify it's the player's turn
+    if (currentGame == null) {return;}
     if (playerColor == null) {
       System.out.println("Observers cannot make moves");
       return;
     }
-
     if (currentGame.game().getTeamTurn() != playerColor) {
       System.out.println("It's not your turn");
       return;
     }
-
     System.out.print("Enter starting position (e.g., e2): ");
     String start = scanner.nextLine().toLowerCase();
     System.out.print("Enter ending position (e.g., e4): ");
     String end = scanner.nextLine().toLowerCase();
-
     try {
       ChessMove move = parseMove(start, end);
-      // Verify the piece belongs to the player
       ChessPiece piece = currentGame.game().getBoard().getPiece(move.getStartPosition());
       if (piece == null || piece.getTeamColor() != playerColor) {
         System.out.println("You can only move your own pieces");
         return;
       }
-
       webSocket.sendMove(move);
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid move format. Use format 'e2 e4'");
@@ -423,22 +369,17 @@ public class ChessClient {
   }
 
   private void highlightMoves() {
-    if (currentGame == null || currentGame.game() == null) return;
-
+    if (currentGame == null || currentGame.game() == null) {return;}
     System.out.print("Enter piece position to highlight (e.g., e2): ");
     String position = scanner.nextLine().toLowerCase();
-
     try {
       ChessPosition pos = parsePosition(position);
       ChessGame game = currentGame.game();
       Collection<ChessMove> moves = game.validMoves(pos);
-
       if (moves.isEmpty()) {
         System.out.println("No legal moves for this piece");
         return;
       }
-
-      // Display board with highlights from correct perspective
       ChessBoardUI.displayGameWithHighlights(game.getBoard(), moves, getPerspective());
     } catch (IllegalArgumentException e) {
       System.out.println("Invalid position format. Use format 'e2'");
@@ -454,19 +395,16 @@ public class ChessClient {
   }
 
   private void resignGame() throws Exception {
-    if (currentGame == null) return;
-
+    if (currentGame == null) {return;}
     if (playerColor == null) {
       System.out.println("Observers cannot resign");
       return;
     }
-
     System.out.print("Are you sure you want to resign? (yes/no): ");
     String confirm = scanner.nextLine().toLowerCase();
     if (confirm.equals("yes")) {
       webSocket.resignGame();
       System.out.println("You have resigned from the game.");
-      // Don't leave the game, just mark it as over
     }
   }
 
@@ -480,12 +418,10 @@ public class ChessClient {
       inGame = false;
       currentGame = null;
       playerColor = null;
-      // Return to post-login UI
       postloginUI();
     }
   }
 
-  //handle websocket notifications to be shows on display
   public void handleMessage(ServerMessage message) {
     switch (message.getServerMessageType()) {
       case NOTIFICATION -> {
@@ -502,48 +438,34 @@ public class ChessClient {
       }
     }
   }
-
-
   public void displayError(String message) {
     System.out.println("Error: " + message);
   }
-
   public void displayNotification(String message) {
     System.out.println("Notification: " + message);
   }
-
-  // Helper methods for parsing chess positions and moves
   private ChessPosition parsePosition(String pos) {
-    if (pos.length() != 2) throw new IllegalArgumentException("Invalid position format");
-
+    if (pos.length() != 2) {throw new IllegalArgumentException("Invalid position format");}
     int col = pos.charAt(0) - 'a';
     int row = Character.getNumericValue(pos.charAt(1)) - 1;
-
     if (col < 0 || col > 7 || row < 0 || row > 7) {
       throw new IllegalArgumentException("Position out of bounds");
     }
-
     return new ChessPosition(row, col);
   }
-
   private ChessMove parseMove(String start, String end) {
     ChessPosition startPos = parsePosition(start);
     ChessPosition endPos = parsePosition(end);
-
-    // Check if this might be a pawn promotion move
     ChessPiece piece = currentGame.game().getBoard().getPiece(startPos);
     if (piece != null && piece.getPieceType() == ChessPiece.PieceType.PAWN) {
-      // Check if pawn is moving to the last rank
       int lastRank = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? 7 : 0;
       if (endPos.getRow() == lastRank) {
-        // Ask for promotion piece
         ChessPiece.PieceType promotionPiece = getPromotionPieceFromUser();
         return new ChessMove(startPos, endPos, promotionPiece);
       }
     }
     return new ChessMove(startPos, endPos, null);
   }
-
   private ChessPiece.PieceType getPromotionPieceFromUser() {
     while (true) {
       System.out.println("Promote pawn to (Q)ueen, (R)ook, (B)ishop, or k(N)ight? ");

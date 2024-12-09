@@ -74,29 +74,27 @@ public class ConnectionManager {
 
     ArrayList<String> users = gameConnections.get(gameId);
     if (users != null) {
-      List<String> disconnectedUsers = new ArrayList<>();
+      return;
+    }
 
-      for (String username : users) {
+    List<String> disconnectedUsers = new ArrayList<>();
+    for (String username : users) {
         if (!username.equals(excludeUsername)) {
-          Connection connection = connections.get(username);
-          if (connection != null && connection.session().isOpen()) {
-            try {
-              connection.session().getRemote().sendString(gson.toJson(message));
-            } catch (IOException e) {
+          continue;
+        }
+        Connection connection = connections.get(username);
+        if (connection != null && connection.session().isOpen()) {
+          disconnectedUsers.add(username);
+          continue;
+        }
+        try {
+            connection.session().getRemote().sendString(gson.toJson(message));
+        } catch (IOException e) {
               System.err.println("Error sending message to " + username + ": " + e.getMessage());
               disconnectedUsers.add(username);
-            }
-          } else {
-            disconnectedUsers.add(username);
-          }
         }
-      }
-
-      // Clean up disconnected users
-      for (String username : disconnectedUsers) {
-        remove(username);
-      }
     }
+    disconnectedUsers.forEach(this::remove);
   }
 
   public void broadcastToGame(Integer gameId, ServerMessage message) throws IOException {
@@ -112,25 +110,6 @@ public class ConnectionManager {
           connection.session().getRemote().sendString(gson.toJson(message));
         }
       }
-    }
-  }
-
-  public List<String> getGameParticipants(Integer gameId) {
-    ArrayList<String> participants = gameConnections.get(gameId);
-    return participants != null ? new ArrayList<>(participants) : new ArrayList<>();
-  }
-
-  public boolean isConnected(String username) {
-    Connection connection = connections.get(username);
-    return connection != null && connection.session().isOpen();
-  }
-
-  public void removeGame(Integer gameId) {
-    ArrayList<String> users = gameConnections.get(gameId);
-    if (users != null) {
-      // Create a copy to avoid concurrent modification
-      new ArrayList<>(users).forEach(this::remove);
-      gameConnections.remove(gameId);
     }
   }
 

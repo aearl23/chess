@@ -118,16 +118,6 @@ public class GameService {
     return gameData;
   }
 
-  public boolean isPlayerInGame(int gameID, String authToken) throws DataAccessException {
-    AuthData auth = dataAccess.getAuth(authToken);
-    if (auth == null) {
-      return false;
-    }
-
-    GameData game = getGame(gameID);
-    return auth.username().equals(game.whiteUsername()) ||
-            auth.username().equals(game.blackUsername());
-  }
 
   public boolean isGameOver(int gameID) throws DataAccessException {
     GameData game = getGame(gameID);
@@ -139,32 +129,9 @@ public class GameService {
             chessGame.isInStalemate(chessGame.getTeamTurn());
   }
 
-  public String getPlayerColor(int gameID, String authToken) throws DataAccessException {
-    AuthData auth = dataAccess.getAuth(authToken);
-    if (auth == null) {
-      throw new UnauthorizedException("Error: unauthorized");
-    }
-
-    GameData game = getGame(gameID);
-    if (auth.username().equals(game.whiteUsername())) {
-      return "WHITE";
-    } else if (auth.username().equals(game.blackUsername())) {
-      return "BLACK";
-    } else {
-      return null; // Observer
-    }
-  }
-
   public void updateGame(GameData game) throws DataAccessException{
     dataAccess.updateGame(game);
   }
 
-  public String verifyAuth(String authToken) throws DataAccessException {
-    AuthData auth = dataAccess.getAuth(authToken);
-    if (auth == null) {
-      throw new UnauthorizedException("Error: unauthorized");
-    }
-    return auth.username();
-  }
 }
 
