@@ -8,12 +8,29 @@ public class ChessGame {
   private ChessBoard board;
   private TeamColor currentTurn;
   private ChessRules rules;
+  private boolean isGameOver;
+  private TeamColor winner;
 
   public ChessGame() {
     this.board = new ChessBoard();
     this.board.resetBoard();
     this.currentTurn = TeamColor.WHITE;
     this.rules = new ChessRules();
+    this.isGameOver = false;
+    this.winner = null;
+  }
+
+
+  // Add getter method for game over state
+  public boolean isGameOver() {
+    // Game is over if explicitly set (resignation) or if there's checkmate/stalemate
+    return isGameOver || isInCheckmate(TeamColor.WHITE) || isInCheckmate(TeamColor.BLACK)
+            || isInStalemate(TeamColor.WHITE) || isInStalemate(TeamColor.BLACK);
+  }
+
+  // Add getter for winner
+  public TeamColor getWinner() {
+    return winner;
   }
 
   public TeamColor getTeamTurn() {
@@ -62,9 +79,23 @@ public class ChessGame {
   }
 
   public void makeMove(ChessMove move) throws InvalidMoveException {
+    if (isGameOver()) {
+      throw new InvalidMoveException("Game is already over");
+    }
+
     validateMove(move);
     executeMove(move);
     switchTurns();
+
+    // Check for checkmate or stalemate after move
+    TeamColor opponent = (currentTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    if (isInCheckmate(opponent)) {
+      isGameOver = true;
+      winner = (opponent == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    } else if (isInStalemate(opponent)) {
+      isGameOver = true;
+      winner = null; // Stalemate means no winner
+    }
   }
 
   private void validateMove(ChessMove move) throws InvalidMoveException {
@@ -124,7 +155,8 @@ public class ChessGame {
     return moves.stream().anyMatch(move -> move.getEndPosition().equals(kingPosition));
   }
 
-  public boolean isInCheckmate(TeamColor teamColor) {
+
+  public boolean isInCheckmate(ChessGame.TeamColor teamColor) {
     if (!isInCheck(teamColor)) {
       return false;
     }
@@ -192,7 +224,11 @@ public class ChessGame {
   }
 
   public void setGameOver(boolean resigned) {
-    // Add implementation to mark game as over
+    if (resigned) {
+      isGameOver = true;
+      // The winner is the opposite of current turn when someone resigns
+      winner = (currentTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
   }
 
 }

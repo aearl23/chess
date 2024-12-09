@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.BadRequestException;
 import dataaccess.GameAlreadyTakenException;
@@ -8,6 +9,7 @@ import service.GameService;
 import spark.Request;
 import spark.Response;
 import spark.Route;
+import websocket.messages.NotificationMessage;
 
 public class JoinGameHandler implements Route {
     private final GameService gameService;
@@ -32,6 +34,7 @@ public class JoinGameHandler implements Route {
 
         gameService.joinGame(authToken, joinRequest.playerColor(), joinRequest.gameID());
         response.status(200);
+
         return "{}"; //Empty json object for success
 
       } catch (BadRequestException e) {
@@ -47,6 +50,7 @@ public class JoinGameHandler implements Route {
           response.status(500);
           return gson.toJson(new ErrorResponse("Error: " + e.getMessage()));
       }
+
     }
   private record JoinGameRequest(String playerColor, int gameID) {
   }

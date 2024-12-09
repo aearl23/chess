@@ -4,14 +4,17 @@ import chess.*;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
-
+import server.websocket.WebSocketHandler;
 import java.util.List;
 
 public class GameService {
   private final DataAccess dataAccess;
+  private final WebSocketHandler webSocketHandler;
+
 
   public GameService(DataAccess dataAccess) {
     this.dataAccess = dataAccess;
+    this.webSocketHandler = new WebSocketHandler(this);
   }
 
   public List<GameData> listGames(String authToken) throws DataAccessException {
@@ -30,7 +33,7 @@ public class GameService {
   }
 
   public void joinGame(String authToken, String playerColor, int gameID) throws BadRequestException,
-          UnauthorizedException, GameAlreadyTakenException {
+          UnauthorizedException, GameAlreadyTakenException, DataAccessException {
       AuthData auth = dataAccess.getAuth(authToken);
       if (auth == null) {
           throw new UnauthorizedException("Error: unauthorized");
@@ -41,21 +44,43 @@ public class GameService {
           throw new BadRequestException("Error: invalid game ID");
       }
 
-
-      if (playerColor == null){
-        throw new BadRequestException("Error: invalid player color");
-      } else if (playerColor.equals("WHITE")) {
-          if (game.whiteUsername() != null) {
-              throw new GameAlreadyTakenException("Error: White player slot already taken");
-          }
-            dataAccess.updateGame( new GameData(game.gameID(), auth.username(), game.blackUsername(), game.gameName(), game.game()));
-      } else if (playerColor.equals("BLACK")) {
-          if (game.blackUsername() != null) {
-              throw new GameAlreadyTakenException("Error: Black player slot already taken");
-          }
-        dataAccess.updateGame( new GameData(game.gameID(), game.whiteUsername(), auth.username(), game.gameName(), game.game()));
+      if (playerColor == null || playerColor.isEmpty()) {
+        return;
       }
+
+      GameData updatedGame;
+      switch (playerColor.toUpperCase()) {
+        case "WHITE" -> {
+          if (game.whiteUsername() != null) {
+            throw new GameAlreadyTakenException("Error: already taken");
+          }
+          updatedGame = new GameData(game.gameID(), auth.username(), game.blackUsername(),
+                  game.gameName(), game.game());
+        }
+        case "BLACK" -> {
+          if (game.blackUsername() != null) {
+            throw new GameAlreadyTakenException("Error: already taken");
+          }
+          updatedGame = new GameData(game.gameID(), game.whiteUsername(), auth.username(),
+                  game.gameName(), game.game());
+        }
+        default -> throw new BadRequestException("Error: invalid player color");
+      }
+      dataAccess.updateGame(updatedGame);
+  }
+
+  public AuthData getAuth(String authToken) throws Exception {
+    try {
+      // Try to get the auth data from the database
+      AuthData auth = dataAccess.getAuth(authToken);
+      if (auth == null) {
+        throw new UnauthorizedException("Invalid auth token");
+      }
+      return auth;
+    } catch (DataAccessException e) {
+      throw new UnauthorizedException("Error validating auth token");
     }
+  }
 
 
   public GameData getGame(int gameID) throws DataAccessException {
@@ -66,68 +91,31 @@ public class GameService {
     return game;
   }
 
-  public void makeMove(int gameID, String authToken, ChessMove move) throws DataAccessException, InvalidMoveException{
-    // Verify auth and get game
-    AuthData auth = dataAccess.getAuth(authToken);
-    if (auth == null) {
-      throw new UnauthorizedException("Error: unauthorized");
-    }
-
+  public GameData makeMove(int gameID, ChessMove move) throws DataAccessException, InvalidMoveException{
     GameData gameData = getGame(gameID);
     ChessGame game = gameData.game();
-
-    // Verify it's the player's turn
-    boolean isWhitePlayer = auth.username().equals(gameData.whiteUsername());
-    boolean isBlackPlayer = auth.username().equals(gameData.blackUsername());
-
-    if (!isWhitePlayer && !isBlackPlayer) {
-      throw new UnauthorizedException("Error: not a player in this game");
-    }
-
-    if ((game.getTeamTurn() == ChessGame.TeamColor.WHITE && !isWhitePlayer) ||
-            (game.getTeamTurn() == ChessGame.TeamColor.BLACK && !isBlackPlayer)) {
-      throw new BadRequestException("Error: not your turn");
-    }
-
-    // Validate and make the move
-    ChessPosition start = move.getStartPosition();
-    ChessPiece piece = game.getBoard().getPiece(start);
-
-    if (piece == null || piece.getTeamColor() != game.getTeamTurn()) {
-      throw new BadRequestException("Error: invalid piece selection");
-    }
-
-    if (!game.validMoves(start).contains(move)) {
-      throw new BadRequestException("Error: invalid move");
-    }
-
+    // make move
     game.makeMove(move);
-
     // Update game in database
     dataAccess.updateGame(gameData);
+    return gameData;
   }
 
-  public void resignGame(int gameID, String authToken) throws DataAccessException {
-    AuthData auth = dataAccess.getAuth(authToken);
-    if (auth == null) {
-      throw new UnauthorizedException("Error: unauthorized");
-    }
-
+  public GameData resignGame(int gameID, String username) throws DataAccessException {
     GameData gameData = getGame(gameID);
 
     // Verify player is in the game
-    if (!auth.username().equals(gameData.whiteUsername()) &&
-            !auth.username().equals(gameData.blackUsername())) {
+    if (!username.equals(gameData.whiteUsername()) &&
+            !username.equals(gameData.blackUsername())) {
       throw new UnauthorizedException("Error: not a player in this game");
     }
 
     // Mark game as over (you might want to add a field to GameData for this)
     ChessGame game = gameData.game();
-    // Set the game state to indicate resignation
-    // This might require adding a method to your ChessGame class
-    // game.setGameOver() or similar
 
+    game.setGameOver(true);
     dataAccess.updateGame(gameData);
+    return gameData;
   }
 
   public boolean isPlayerInGame(int gameID, String authToken) throws DataAccessException {
@@ -165,6 +153,18 @@ public class GameService {
     } else {
       return null; // Observer
     }
+  }
+
+  public void updateGame(GameData game) throws DataAccessException{
+    dataAccess.updateGame(game);
+  }
+
+  public String verifyAuth(String authToken) throws DataAccessException {
+    AuthData auth = dataAccess.getAuth(authToken);
+    if (auth == null) {
+      throw new UnauthorizedException("Error: unauthorized");
+    }
+    return auth.username();
   }
 }
 

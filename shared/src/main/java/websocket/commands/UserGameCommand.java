@@ -1,6 +1,7 @@
 package websocket.commands;
 
 import java.util.Objects;
+import chess.ChessMove;
 
 /**
  * Represents a command a user can send the server over a websocket
@@ -15,11 +16,21 @@ public class UserGameCommand {
     public String authToken;
 
     public Integer gameID;
+    private ChessMove move;
 
+    public UserGameCommand(String authToken, Integer gameID, ChessMove move) {
+        this.commandType = CommandType.MAKE_MOVE;
+        this.authToken = authToken;
+        this.gameID = gameID;
+        this.move = move;
+    }
+
+    // Constructor for commands that don't need a move (CONNECT, LEAVE, RESIGN)
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
+        this.move = null;
     }
 
     public enum CommandType {
@@ -39,6 +50,14 @@ public class UserGameCommand {
 
     public Integer getGameID() {
         return gameID;
+    }
+
+    public ChessMove getMove() {
+        return move;
+    }
+
+    public void setMove(ChessMove move) {
+        this.move = move;
     }
 
     @Override

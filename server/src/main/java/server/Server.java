@@ -5,14 +5,11 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import dataaccess.MySqlDataAccess;
-import org.eclipse.jetty.websocket.api.Session;
 import server.websocket.WebSocketHandler;
 import model.*;
 import service.*;
 import spark.*;
-
 import java.util.List;
-
 
 public class Server {
     private final UserService userService;
@@ -43,7 +40,11 @@ public class Server {
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
+        Spark.webSocket("/ws", webSocketHandler);
+
         Spark.staticFiles.location("web");
+
+//        Spark.init();
 
         // Register your handlers
         RegisterHandler registerHandler  = new RegisterHandler(userService);
@@ -54,6 +55,7 @@ public class Server {
         ListGamesHandler listGamesHandler = new ListGamesHandler(gameService);
         CreateGameHandler createGameHandler = new CreateGameHandler(gameService);
 
+
         Spark.post("/user", registerHandler);
         Spark.post("/session", loginHandler);
         Spark.put("/game", joinGameHandler);
@@ -61,8 +63,6 @@ public class Server {
         Spark.delete("/db", clearHandler);
         Spark.get("/game", listGamesHandler);
         Spark.post("/game", createGameHandler);
-
-        Spark.webSocket("/ws", webSocketHandler);
         //Add endpoints here
 
         Spark.exception(Exception.class, (e, req, res) -> {
@@ -76,13 +76,7 @@ public class Server {
 
     public void stop() {
         // Close all active WebSocket sessions
-        for (Session session : webSocketHandler.getSessions()) {
-            try {
-                session.close();
-            } catch (Exception e) {
-                System.err.println("Error closing WebSocket session: " + e.getMessage());
-            }
-        }
+        webSocketHandler.closeAllSessions();
         Spark.stop();
     }
 
