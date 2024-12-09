@@ -9,7 +9,6 @@ import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.api.annotations.*;
-import org.glassfish.tyrus.spi.Connection;
 import service.GameService;
 import websocket.messages.*;
 import websocket.commands.UserGameCommand;
