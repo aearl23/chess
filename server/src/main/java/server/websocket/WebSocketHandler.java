@@ -7,13 +7,10 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import service.GameService;
 import websocket.messages.*;
 import websocket.commands.UserGameCommand;
-
-import java.io.IOException;
 
 @WebSocket
 public class WebSocketHandler {

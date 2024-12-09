@@ -10,14 +10,11 @@ import model.AuthData;
 import model.GameData;
 import client.ServerFacade;
 import client.websocket.ServerMessageObserver;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Collection;
-
-import server.websocket.WebSocketHandler;
 import websocket.messages.*;
 
 public class ChessClient {
